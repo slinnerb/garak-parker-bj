@@ -1,0 +1,13 @@
+# Normalize line endings. Godot text resources are LF.
+* text=auto eol=lf
+
+# Treat these as binary so git does not munge them.
+*.png binary
+*.jpg binary
+*.webp binary
+*.ogg binary
+*.wav binary
+*.res binary
+*.pck binary
+*.exe binary
+*.zip binary

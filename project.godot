@@ -1,0 +1,42 @@
+; Engine configuration file.
+; Roguelike Reincarnation Deckbuilder — foundation.
+; See docs/ARCHITECTURE.md for the system overview.
+
+config_version=5
+
+[application]
+
+config/name="Reincarnation Roguelike"
+config/description="A single-player roguelike reincarnation deckbuilder. Foundation build."
+config/version="0.1.0"
+run/main_scene="res://scenes/boot/boot.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Log="*res://core/logging/logger.gd"
+EventBus="*res://core/events/game_event_bus.gd"
+RNG="*res://core/rng/rng_service.gd"
+SaveManager="*res://core/save/save_manager.gd"
+ContentRegistry="*res://core/content/content_registry.gd"
+Updater="*res://core/update/update_service.gd"
+SceneFlow="*res://core/scene_flow/scene_flow_manager.gd"
+GameState="*res://core/state/game_state_manager.gd"
+GameBootstrap="*res://core/bootstrap/game_bootstrap.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[dotnet]
+
+project/assembly_name="Reincarnation Roguelike"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

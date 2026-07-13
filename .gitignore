@@ -1,0 +1,23 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Exported builds / release artifacts
+/build/
+/dist/
+*.exe
+*.pck
+*.zip
+
+# Godot editor imported cache (regenerated on open)
+.import/
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+*.tmp
+*.bak
+*.corrupt
+
+# Local, machine-specific overrides
+/override.cfg
