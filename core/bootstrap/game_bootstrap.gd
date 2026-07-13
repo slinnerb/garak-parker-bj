@@ -72,6 +72,8 @@ func _warm_profile() -> void:
 
 
 func _validate_content() -> bool:
+	var loaded := ContentLoader.load_all(ContentRegistry)
+	Log.info(Log.Cat.CONTENT, "Registered %d content definitions" % loaded)
 	var problems := ContentRegistry.validate_all()
 	if problems.is_empty():
 		Log.info(Log.Cat.CONTENT, "Content validation passed")

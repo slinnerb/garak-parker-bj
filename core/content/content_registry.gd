@@ -47,12 +47,47 @@ func all_of(type_name: String) -> Dictionary:
 	return _content.get(type_name, {})
 
 
+## Empties the registry. Used by tests (which share this autoload across one
+## process) and debug tools that reload content from scratch.
+func clear() -> void:
+	_content.clear()
+
+
 ## Runs registered validators and returns a list of human-readable problems.
 ## An empty list means content is valid. Callers (boot, debug panel, tests)
 ## decide whether problems are fatal.
 func validate_all() -> Array[String]:
 	var problems: Array[String] = []
-	# Future: iterate content types, check missing references, invalid costs,
-	# empty required fields, unreachable content, broken loot tables, etc.
-	# For now there is no content, so there is nothing to invalidate.
+	for type_name in _content:
+		for id in _content[type_name]:
+			var def = _content[type_name][id]
+			if def is Object and def.has_method("validate"):
+				problems.append_array(def.validate(self))
+	_validate_globals(problems)
 	return problems
+
+
+## Cross-content checks no single definition can see on its own.
+func _validate_globals(problems: Array[String]) -> void:
+	# The first three lives are a scripted on-ramp: fixed_order_position 1..3
+	# must each be claimed by exactly one universe.
+	var positions: Dictionary = {}  # fixed_order_position -> universe id that claimed it
+	var any_playable := false
+	for u in all_of(ContentDefinition.TYPE_UNIVERSE).values():
+		if not (u is UniverseDefinition):
+			continue
+		if u.playable:
+			any_playable = true
+		if u.fixed_order_position == -1:
+			continue
+		if positions.has(u.fixed_order_position):
+			problems.append("universe:%s: fixed_order_position %d already used by '%s'" % [u.id, u.fixed_order_position, positions[u.fixed_order_position]])
+		else:
+			positions[u.fixed_order_position] = u.id
+	for required_pos in [1, 2, 3]:
+		if not positions.has(required_pos):
+			problems.append("universe: no universe has fixed_order_position %d (the first three lives are fixed-order)" % required_pos)
+	if not any_playable:
+		problems.append("universe: at least one universe must be playable")
+	if ids_of(ContentDefinition.TYPE_BODY_ARCHETYPE).is_empty():
+		problems.append("body_archetype: at least one body archetype must be registered")
