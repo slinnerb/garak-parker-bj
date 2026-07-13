@@ -14,7 +14,7 @@ const GITHUB_OWNER := "slinnerb"
 
 ## GitHub repository name. EMPTY until the public repo is created.
 ## Set this to the repo name (e.g. "reincarnation-roguelike").
-const GITHUB_REPO := ""
+const GITHUB_REPO := "garak-parker-bj"
 
 
 static func is_configured() -> bool:
