@@ -18,10 +18,11 @@ stable.** Checkboxes reflect reality.
 - [x] Headless test runner + foundation tests (all green)
 - [x] Release pipeline (`tools/release/release.ps1`)
 
-## Phase 1.5 — Distribution hookup (next)
-- [ ] Create public GitHub repo; set `GITHUB_REPO` in `update_config.gd`
-- [ ] Push code; install export templates; cut a first `v0.1.0` release
-- [ ] Verify end-to-end: an older local build sees the new release
+## Phase 1.5 — Distribution hookup
+- [x] Create public GitHub repo (slinnerb/garak-parker-bj); set `GITHUB_REPO`
+- [x] Push code
+- [x] Verify end-to-end: an older build detects a newer release (headless)
+- [ ] Install export templates; cut a first real `v0.1.0` release with a build
 - [ ] Settings screen (audio/video/accessibility) wired to `SaveManager`
 - [ ] Debug panel scaffold (dev-only)
 

@@ -22,6 +22,11 @@ _Last updated: 2026-07-12 — end of the foundation pass._
   exist.
 - **Release pipeline** — `tools/release/release.ps1` bumps the version, exports
   Windows, zips, and publishes a GitHub release.
+- **Update system is live and verified** against the public repo
+  **github.com/slinnerb/garak-parker-bj**. Verified end-to-end (headless):
+  the "up to date" path (no releases) and the "update available" path (a newer
+  release is detected with its notes + download URL), using a throwaway release
+  that was then removed. Repo currently has no releases (clean at 0.1.0).
 - **Tests** — 22 unit tests across SemVer, RNG determinism, save round-trip /
   backup / corruption / merge, and version wiring. **All green** (exit 0).
 
@@ -39,9 +44,6 @@ _Last updated: 2026-07-12 — end of the foundation pass._
 
 - **No gameplay** yet: no combat, cards, items, inventory/attunement, map,
   enemies, death/reincarnation, memories, or tattoos. These are Phases 2–7.
-- **Update repo not connected**: `core/update/update_config.gd` `GITHUB_REPO`
-  is empty. The button correctly reports "updates not set up yet" until a public
-  repo is created and the name filled in.
 - **Export templates not installed**: producing the actual `.exe` needs the
   Godot 4.7 export templates (one-time editor install). The in-game update
   check and `-DryRun` do not need them.
@@ -53,7 +55,8 @@ _Last updated: 2026-07-12 — end of the foundation pass._
 
 ## Immediate next task
 
-Connect the update repo (create the public GitHub repo, set `GITHUB_REPO`, push,
-optionally cut `v0.1.0`), then begin **Phase 2: data model** — starting with
-`CardDefinition` / `CardEffectDefinition` and `ItemDefinition`, since the
-item→deck relationship is the spine of the whole game.
+Install the Godot 4.7 export templates and cut the first real `v0.1.0` release
+(so there's a downloadable build for a friend), then begin **Phase 2: data
+model** — starting with `CardDefinition` / `CardEffectDefinition` and
+`ItemDefinition`, since the item→deck relationship is the spine of the whole
+game.
