@@ -26,10 +26,11 @@ func _ready() -> void:
 	_update_button.pressed.connect(_on_update_pressed)
 	_quit_button.pressed.connect(func() -> void: SceneFlow.quit_game())
 
-	# New Life currently drops straight into a demo fight — a real preview of the
-	# combat engine until the between-life hub and run map exist (later phases).
+	# New Life currently opens the attunement screen (pick your loadout), then a
+	# demo fight — a real preview of the item->deck->combat spine until the
+	# between-life hub and run map exist (later phases).
 	_new_life_button.pressed.connect(_on_new_life_pressed)
-	_new_life_button.tooltip_text = "Enter a demo fight on the Lovecraftian coast (full run flow comes later)."
+	_new_life_button.tooltip_text = "Choose a loadout, then fight on the Lovecraftian coast (full run flow comes later)."
 
 	_continue_button.disabled = not SaveManager.has_active_run()
 	_continue_button.tooltip_text = "No life in progress." if _continue_button.disabled else "Resume your current life."
@@ -59,7 +60,7 @@ func _on_update_pressed() -> void:
 
 
 func _on_new_life_pressed() -> void:
-	SceneFlow.goto_combat()
+	SceneFlow.goto_attunement()
 
 
 func _on_continue_pressed() -> void:

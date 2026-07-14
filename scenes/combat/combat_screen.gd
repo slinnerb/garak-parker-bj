@@ -36,6 +36,9 @@ const CARD_COLORS := {
 var _combat: CombatState
 var _seed: int = 0
 var _pending_card_index: int = -1   # a card awaiting a target click, or -1
+## The fight to build (archetype/attuned items/enemy), from the attunement
+## screen. Empty => the default demo. Kept so "Fight Again" reuses the loadout.
+var _request: Dictionary = {}
 
 # Node references (built in _build_ui).
 var _title_label: Label
@@ -55,6 +58,7 @@ func _ready() -> void:
 	# directly (e.g. the screenshot tool), so ensure content exists.
 	if ContentRegistry.ids_of("card").is_empty():
 		ContentLoader.load_all(ContentRegistry)
+	_request = CombatRequest.take()
 	_build_ui()
 	_start_new_fight()
 
@@ -66,7 +70,13 @@ func _ready() -> void:
 func _start_new_fight() -> void:
 	_seed = RNG.fresh_seed()
 	var rng := RngStream.new(_seed)
-	_combat = CombatDemo.build(ContentRegistry, rng)
+	if _request.is_empty():
+		_combat = CombatDemo.build(ContentRegistry, rng)
+	else:
+		_combat = CombatDemo.build_from(ContentRegistry, rng,
+			str(_request.get("archetype_id", CombatDemo.DEMO_ARCHETYPE)),
+			_request.get("attuned_item_ids", CombatDemo.DEFAULT_ATTUNED),
+			str(_request.get("enemy_id", CombatDemo.DEMO_ENEMY)))
 	_pending_card_index = -1
 	_outcome_overlay.visible = false
 	if _combat == null:
