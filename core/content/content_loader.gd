@@ -60,9 +60,15 @@ static func _load_script(registry, path: String) -> int:
 		if def == null:
 			# One error, not one per entry — the whole script is mistyped.
 			push_error("ContentLoader: unknown content type '%s' in '%s'" % [type_name, path])
+			registry.record_load_problem("content loader: unknown content type '%s' in '%s'" % [type_name, path])
 			return count
 		if registry.register(type_name, def.id, def):
 			count += 1
+		else:
+			# Dropped for an empty or duplicate id. register() logs it, but the
+			# def is now gone and can't validate itself — record it so the boot
+			# content-validation gate still fails instead of reporting success.
+			registry.record_load_problem("content loader: could not register %s '%s' from '%s' (empty or duplicate id)" % [type_name, def.id, path])
 	return count
 
 

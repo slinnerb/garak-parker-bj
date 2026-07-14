@@ -55,6 +55,10 @@ func validate(registry) -> Array[String]:
 		problems.append(_ctx("field 'base_hp' must be >= 1 (got %d)" % base_hp))
 	if hp_variance < 0:
 		problems.append(_ctx("field 'hp_variance' must be >= 0 (got %d)" % hp_variance))
+	elif base_hp >= 1 and hp_variance >= base_hp:
+		# Variance is a spread around base_hp; if it can equal or exceed base_hp
+		# an encounter could roll an enemy in at 0 or negative HP.
+		problems.append(_ctx("field 'hp_variance' (%d) must be < base_hp (%d) so rolled HP stays positive" % [hp_variance, base_hp]))
 	for damage_type in damage_taken_multipliers:
 		if not DAMAGE_TYPES.has(damage_type):
 			problems.append(_ctx("damage_taken_multipliers has unknown damage type '%s' (allowed: %s)" % [damage_type, ", ".join(DAMAGE_TYPES)]))

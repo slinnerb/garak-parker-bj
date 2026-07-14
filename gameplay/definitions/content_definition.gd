@@ -101,7 +101,24 @@ func _check_universe_availability(registry, availability: Array[String], problem
 	for u in availability:
 		if u == "*":
 			continue
+		if u.is_empty():
+			# _check_ref skips empty ids as "optional ref absent"; an empty entry
+			# in an explicit list is instead a malformed reference to nowhere.
+			problems.append(_ctx("universe_availability contains an empty id"))
+			continue
 		_check_ref(registry, TYPE_UNIVERSE, u, "universe_availability", problems)
+
+
+## Validates a list of outgoing id references. Empty entries are reported (an
+## empty id silently resolves to "no reference" and would never spawn/resolve at
+## runtime); each non-empty id is checked against the registry. Use this for any
+## required id list so empty strings can't slip past _check_ref.
+func _check_id_list(registry, ids: Array[String], ref_type: String, field: String, problems: Array[String]) -> void:
+	for ref_id in ids:
+		if ref_id.is_empty():
+			problems.append(_ctx("field '%s' contains an empty id" % field))
+		else:
+			_check_ref(registry, ref_type, ref_id, field, problems)
 
 
 # ---------------------------------------------------------------------------

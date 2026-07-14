@@ -73,11 +73,17 @@ func _validate_entry(registry, entry: Dictionary, label: String, require_weight:
 		if not (w is int or w is float) or float(w) <= 0.0:
 			problems.append(_ctx("%s.weight must be a number > 0 when present" % label))
 
+	# Amounts must be real ints, not floats: a fractional value would truncate
+	# here but ship raw in the stored entry, so a "1.9/1.2" pair passes this
+	# check yet has max < min at roll time. Require int outright.
 	var raw_min = entry.get("min_amount", 1)
-	var min_amount := int(raw_min) if (raw_min is int or raw_min is float) else 0
-	if min_amount < 1:
+	var min_amount := 1
+	if raw_min is int and raw_min >= 1:
+		min_amount = raw_min
+	else:
 		problems.append(_ctx("%s.min_amount must be an int >= 1" % label))
 	var raw_max = entry.get("max_amount", min_amount)
-	var max_amount := int(raw_max) if (raw_max is int or raw_max is float) else min_amount - 1
-	if max_amount < min_amount:
+	if not (raw_max is int):
 		problems.append(_ctx("%s.max_amount must be an int >= min_amount" % label))
+	elif raw_max < min_amount:
+		problems.append(_ctx("%s.max_amount must be >= min_amount (%d)" % [label, min_amount]))

@@ -78,6 +78,65 @@ func test_universe_fixed_order_global_checks() -> void:
 	assert_true(_has_problem(broken, "position"), "problems name the fixed-order position rule")
 	ContentRegistry.clear()
 
+func test_card_item_link_must_be_bidirectional() -> void:
+	ContentRegistry.clear()
+	# The card names harpoon as its source, but harpoon does not list the card.
+	# Both refs resolve, so only the registry's both-ends check can catch it.
+	var harpoon := ItemDefinition.from_dict({
+		"id": "link_harpoon",
+		"display_name": "Harpoon",
+		"category": "weapon",
+		"slot_cost": 1,
+		"passive_modifiers": [{"kind": "noop"}],  # does something, but grants no cards
+	})
+	var card := CardDefinition.from_dict({
+		"id": "link_strike",
+		"display_name": "Strike",
+		"card_type": "attack",
+		"targeting": "enemy",
+		"source_item_id": "link_harpoon",
+		"effects": [{"kind": "deal_damage", "params": {"amount": 5}}],
+	})
+	ContentRegistry.register(ContentDefinition.TYPE_ITEM, harpoon.id, harpoon)
+	ContentRegistry.register(ContentDefinition.TYPE_CARD, card.id, card)
+	assert_true(_has_problem(ContentRegistry.validate_all(), "does not list this card"), "a one-way card->item link is a problem")
+	ContentRegistry.clear()
+
+func test_item_granting_card_sourced_elsewhere_is_a_problem() -> void:
+	ContentRegistry.clear()
+	# harpoon<->shared_strike is a consistent pair; the gaff also grants
+	# shared_strike, but the card can only name one source (the harpoon), so the
+	# gaff's grant is the inconsistency the reverse check must catch.
+	var harpoon := ItemDefinition.from_dict({
+		"id": "the_harpoon", "display_name": "Harpoon", "category": "weapon",
+		"slot_cost": 1, "granted_card_ids": ["shared_strike"],
+	})
+	var gaff := ItemDefinition.from_dict({
+		"id": "the_gaff", "display_name": "Gaff", "category": "weapon",
+		"slot_cost": 1, "granted_card_ids": ["shared_strike"],
+	})
+	var card := CardDefinition.from_dict({
+		"id": "shared_strike", "display_name": "Shared Strike", "card_type": "attack",
+		"targeting": "enemy", "source_item_id": "the_harpoon",
+		"effects": [{"kind": "deal_damage", "params": {"amount": 5}}],
+	})
+	ContentRegistry.register(ContentDefinition.TYPE_ITEM, harpoon.id, harpoon)
+	ContentRegistry.register(ContentDefinition.TYPE_ITEM, gaff.id, gaff)
+	ContentRegistry.register(ContentDefinition.TYPE_CARD, card.id, card)
+	assert_true(_has_problem(ContentRegistry.validate_all(), "source_item_id"), "an item granting a card sourced to another item is a problem")
+	ContentRegistry.clear()
+
+func test_registration_failure_surfaces_in_validate_all() -> void:
+	ContentRegistry.clear()
+	# A definition dropped for an empty/duplicate id never validates itself; the
+	# loader records the failure so the boot content gate still fails loudly.
+	ContentRegistry.record_load_problem("content loader: could not register card 'twin' (empty or duplicate id)")
+	assert_true(_has_problem(ContentRegistry.validate_all(), "could not register"), "recorded load problems surface in validate_all()")
+	ContentRegistry.clear()
+	# clear() must also drop load problems so they don't leak into later tests.
+	assert_false(_has_problem(ContentRegistry.validate_all(), "could not register"), "clear() resets recorded load problems")
+	ContentRegistry.clear()
+
 func _register_universe(universe_id: String, position: int) -> void:
 	var universe := UniverseDefinition.from_dict({
 		"id": universe_id,

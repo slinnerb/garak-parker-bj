@@ -49,6 +49,26 @@ From life four onward, universe selection becomes **weighted and seeded random**
 death and active tattoos). Future universes (Gothic Europe, Egypt, Celtic,
 Slavic, Greek, Mesoamerican, Victorian occult, prehistoric) plug in as data.
 
+### Fate-shaping: earning control over reincarnation
+
+A core soul-progression axis: the player gradually *earns* influence over where
+and how they reincarnate. Control is the reward.
+
+1. **Nudge** (early) — adaptations and tattoos multiply universe selection
+   weights; the soul drifts toward familiar mythologies.
+2. **Reroll / veto** (mid) — at the Moment of Recall, spend Remembrance to
+   reroll the destined universe, or exclude one from the draw.
+3. **Choice** (late) — outright pick the next universe from those unlocked
+   ("this death I choose the Lovecraft coast; next death, the Japanese
+   mythos"). May be limited-use or cost Remembrance so randomness stays the
+   default texture.
+
+The same idea applies within a life: **path-range upgrades** widen the run map
+— more branch options at forks, revealed node types further ahead, and
+eventually a choice of starting region when a life begins. Narratively this is
+the soul learning to steer the current between lives; mechanically every step
+stays seeded and deterministic.
+
 ## What the vertical slice will prove (not yet built)
 
 One complete, playable loop in the Lovecraftian Coast: explore → find items →

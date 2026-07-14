@@ -91,6 +91,66 @@ func test_enemy_needs_unconditional_intent() -> void:
 	var fallback := EnemyDefinition.from_dict(_enemy_dict({}))
 	assert_false(_has_problem(fallback.validate(null), "empty conditions"), "an unconditional intent satisfies the fallback rule")
 
+func test_effect_int_params_reject_non_int() -> void:
+	# Strictness: a coercible String/float must be rejected, not silently turned
+	# into 0 / truncated. from_dict stores params raw, so a value that only
+	# *looks* valid after int() would still ship wrong to the combat engine.
+	var str_amount := CardEffectDefinition.from_dict({"kind": "deal_damage", "params": {"amount": "abc"}})
+	assert_true(_has_problem(str_amount.validate(null, "t"), "must be an integer"), "string amount is rejected, not coerced to 0")
+	var float_amount := CardEffectDefinition.from_dict({"kind": "deal_damage", "params": {"amount": 7.5}})
+	assert_true(_has_problem(float_amount.validate(null, "t"), "must be an integer"), "float amount is rejected, not truncated to 7")
+	var good := CardEffectDefinition.from_dict({"kind": "deal_damage", "params": {"amount": 6}})
+	assert_false(_has_problem(good.validate(null, "t"), "must be an integer"), "a real int amount passes")
+
+func test_effect_optional_int_and_energy_reject_non_int() -> void:
+	# Optional int (deal_damage.times, via _check_int_min): a float must not
+	# truncate to a valid count.
+	var bad_times := CardEffectDefinition.from_dict({"kind": "deal_damage", "params": {"amount": 3, "times": 2.5}})
+	assert_true(_has_problem(bad_times.validate(null, "t"), "must be an integer"), "float 'times' is rejected")
+	# modify_energy.delta: a float must not slip past the != 0 check.
+	var bad_delta := CardEffectDefinition.from_dict({"kind": "modify_energy", "params": {"delta": 1.0}})
+	assert_true(_has_problem(bad_delta.validate(null, "t"), "must be an integer"), "float 'delta' is rejected")
+
+func test_loot_amounts_reject_fractional() -> void:
+	# Fractional min/max would truncate in validation but ship raw, so a "1.9/1.2"
+	# pair could have max < min at roll time. Require real ints.
+	var lt := LootTableDefinition.from_dict({
+		"id": "bad_loot",
+		"display_name": "Bad Loot",
+		"entries": [{"kind": "remembrance", "weight": 1.0, "min_amount": 1.9, "max_amount": 1.2}],
+	})
+	var problems := lt.validate(null)
+	assert_true(_has_problem(problems, "min_amount"), "fractional min_amount is rejected")
+	assert_true(_has_problem(problems, "max_amount"), "fractional max_amount is rejected")
+
+func test_enemy_hp_variance_bounded_by_base_hp() -> void:
+	# Variance is a spread around base_hp; if it can reach base_hp an encounter
+	# could roll the enemy in at 0 or negative HP.
+	var too_wide := EnemyDefinition.from_dict(_enemy_dict({"base_hp": 4, "hp_variance": 6}))
+	assert_true(_has_problem(too_wide.validate(null), "hp_variance"), "variance >= base_hp is a problem")
+	var ok := EnemyDefinition.from_dict(_enemy_dict({"base_hp": 20, "hp_variance": 5}))
+	assert_false(_has_problem(ok.validate(null), "hp_variance"), "variance < base_hp passes")
+
+func test_empty_id_in_required_list_is_reported() -> void:
+	# An empty string in a required id list must be reported, not skipped as an
+	# absent optional reference — it would never resolve at runtime.
+	var archetype := BodyArchetypeDefinition.from_dict({
+		"id": "gapped_body",
+		"display_name": "Gapped Body",
+		"base_hp": 10,
+		"base_energy": 1,
+		"starting_item_ids": ["", "real_item"],
+	})
+	assert_true(_has_problem(archetype.validate(null), "empty id"), "empty starting_item_ids entry is a problem")
+	var item := ItemDefinition.from_dict({
+		"id": "nowhere_item",
+		"display_name": "Nowhere Item",
+		"category": "tool",
+		"passive_modifiers": [{"kind": "noop"}],
+		"universe_availability": [""],
+	})
+	assert_true(_has_problem(item.validate(null), "empty id"), "empty universe_availability entry is a problem")
+
 ## True when any problem message contains the needle. Substring matching keeps
 ## these tests about which rule fired, not about exact message wording.
 func _has_problem(problems: Array[String], needle: String) -> bool:

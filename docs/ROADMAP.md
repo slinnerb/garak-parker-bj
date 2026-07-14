@@ -26,13 +26,18 @@ stable.** Checkboxes reflect reality.
 - [ ] Settings screen (audio/video/accessibility) wired to `SaveManager`
 - [ ] Debug panel scaffold (dev-only)
 
-## Phase 2 — Data model
-- [ ] `CardDefinition`, `CardEffectDefinition` (composable effects)
-- [ ] `ItemDefinition` (categories, slot cost, granted cards, passives)
-- [ ] `EnemyDefinition`, `EnemyIntentDefinition`, `StatusEffectDefinition`
-- [ ] `UniverseDefinition` (Lovecraft full; Japanese/Norse sample)
-- [ ] `MemoryDefinition`, `TattooDefinition`, `DeathAdaptationDefinition`
-- [ ] Content validation tooling (duplicates, missing refs, empty fields)
+## Phase 2 — Data model ✅
+- [x] `CardDefinition`, `CardEffectDefinition` (composable effects, 14 kinds)
+- [x] `ItemDefinition` (categories, slot cost, granted cards, passives)
+- [x] `EnemyDefinition`, `EnemyIntentDefinition`, `StatusEffectDefinition`
+- [x] `UniverseDefinition` (Lovecraft full; Japanese/Norse sample) +
+      `MapNodeDefinition`, `LootTableDefinition`, `DifficultyDefinition`,
+      `BodyArchetypeDefinition`
+- [x] `MemoryDefinition`, `TattooDefinition`, `DeathAdaptationDefinition`
+- [x] Content validation (per-definition + cross-content global checks,
+      fail-loud at boot in dev)
+- [x] 69 sample definitions incl. the vertical-slice Lovecraft content set
+      (13 items, 15 cards, 5 enemies), loaded by `ContentLoader` at boot
 
 ## Phase 3 — Combat
 - [ ] Player + enemy state (domain-level, headless-testable)
@@ -51,6 +56,9 @@ stable.** Checkboxes reflect reality.
 - [ ] Seeded, validated branching map generator (logical data first)
 - [ ] Node traversal + encounters + rewards
 - [ ] Rest / shrine, elite path, boss
+- [ ] **Path-range upgrades** (fate-shaping in-run): soul unlocks that widen
+      branch choices, reveal node types further ahead, and later offer a
+      choice of starting region
 
 ## Phase 6 — Death & reincarnation
 - [ ] Death report (cause, universe, distance, items, choices, damage types)
@@ -58,6 +66,9 @@ stable.** Checkboxes reflect reality.
 - [ ] Moment of Recall + adaptation selection
 - [ ] Meta-progression persistence; clear body state; increment life
 - [ ] Fixed universe order (Lovecraft → Japanese → Norse), then seeded weighted
+- [ ] **Fate-shaping tiers** (see GAME_VISION): nudge weights → Remembrance
+      reroll/veto at the Moment of Recall → outright universe choice (late
+      unlock, limited-use so randomness stays the default)
 
 ## Phase 7 — Tattoo system
 - [ ] Unlock after 2nd death; 1 slot → up to 3

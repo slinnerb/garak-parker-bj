@@ -1,103 +1,107 @@
 # Content Schema
 
 All game content is **data-driven** and referenced by **stable string ids**.
-Display names are never used as identifiers. This document is the contract for
-those data definitions. Most are **planned** (Phase 2); the registry and id
-discipline exist today.
+Display names are never used as identifiers. This documents the implemented
+Phase 2 data model. The definition classes themselves are the precise contract
+— each one's `from_dict()` and `validate()` are the source of truth:
+
+| Type key | Class | File |
+|---|---|---|
+| `card` | `CardDefinition` | `gameplay/cards/card_definition.gd` |
+| — | `CardEffectDefinition` | `gameplay/cards/card_effect_definition.gd` |
+| `item` | `ItemDefinition` | `gameplay/items/item_definition.gd` |
+| `enemy` | `EnemyDefinition` | `gameplay/enemies/enemy_definition.gd` |
+| — | `EnemyIntentDefinition` | `gameplay/enemies/enemy_intent_definition.gd` |
+| `status` | `StatusEffectDefinition` | `gameplay/combat/status_effect_definition.gd` |
+| `universe` | `UniverseDefinition` | `gameplay/universes/universe_definition.gd` |
+| `map_node` | `MapNodeDefinition` | `gameplay/map/map_node_definition.gd` |
+| `loot_table` | `LootTableDefinition` | `gameplay/progression/loot_table_definition.gd` |
+| `difficulty` | `DifficultyDefinition` | `gameplay/progression/difficulty_definition.gd` |
+| `tattoo` | `TattooDefinition` | `gameplay/tattoos/tattoo_definition.gd` |
+| `memory` | `MemoryDefinition` | `gameplay/memories/memory_definition.gd` |
+| `adaptation` | `DeathAdaptationDefinition` | `gameplay/death/death_adaptation_definition.gd` |
+| `body_archetype` | `BodyArchetypeDefinition` | `gameplay/progression/body_archetype_definition.gd` |
+
+All extend `ContentDefinition` (`gameplay/definitions/content_definition.gd`),
+which owns the shared fields (`id`, `display_name`, `description`, `tags`),
+the `TYPE_*` registry keys, shared vocabularies (`RARITIES`, `DAMAGE_TYPES`),
+and the validation helpers.
 
 ## Golden rules
 
-- Every content entry has a unique, stable `id` (snake_case, e.g.
-  `harpoon`, `deep_one_acolyte`, `lovecraft_coast`). Ids never change once
-  shipped — they appear in save files.
-- Ids are unique **within a content type**. `ContentRegistry.register()`
-  refuses duplicates and logs an error so bad data fails loudly.
-- References between content use ids (an enemy's loot table references item
-  ids; a universe references enemy ids). Validation checks these resolve.
-- Required fields must be present and non-empty. Validation reports empties.
+- Every entry has a unique, stable snake_case `id` (e.g. `rusted_harpoon`,
+  `lovecraft_coast`). **Ids never change once shipped** — they appear in saves.
+- Ids are unique within a content type; `ContentRegistry.register()` refuses
+  duplicates and logs an error.
+- Cross-references use ids and are validated: cards ↔ items (bidirectional),
+  enemies → loot tables, loot → items/cards, universes → enemies/items,
+  tattoos/memories/adaptations → items/universes, archetypes → items.
+- Definitions are **pure data + validation**: `RefCounted`, no autoloads, no
+  nodes. The registry is passed into `validate(registry)` and may be `null`
+  (unit tests) — reference checks are skipped then.
+- `from_dict()` never crashes on malformed data; bad shapes become validation
+  problems instead.
 
-## Content registry
-
-`ContentRegistry` (autoload) stores content as `type_name -> { id -> def }`:
+## The pattern
 
 ```gdscript
-ContentRegistry.register("item", "harpoon", harpoon_def)
-var def = ContentRegistry.get_def("item", "harpoon")
-var problems := ContentRegistry.validate_all()   # [] means valid
+var def := CardDefinition.from_dict({
+	"id": "strike_harpoon",
+	"display_name": "Harpoon Strike",
+	"source_item_id": "rusted_harpoon",
+	"card_type": "attack",            # attack/skill/power/status/curse
+	"energy_cost": 1,                 # 0..9
+	"targeting": "enemy",             # none/self/enemy/all_enemies/random_enemy
+	"effects": [{"kind": "deal_damage", "amount": 6}],
+})
+var problems := def.validate(ContentRegistry)   # [] means valid
 ```
 
-Validation (to be expanded as types land) will report: duplicate ids, missing
-references, empty required fields, invalid costs, invalid effect data,
-unreachable content, missing universe assignments, and broken loot-table
-references.
+Effect kinds (composable; complex cards compose these — no per-card scripts):
+`deal_damage, gain_block, heal, draw_cards, apply_status, remove_status,
+modify_energy, add_temporary_card, exhaust_card, transform_card, modify_item,
+conditional, repeat, random_target`. `conditional` nests `then`/`else` effect
+lists; `repeat`/`random_target` nest `effects`; nesting is validated to depth 4.
 
-## Planned definition types
+Design-rule validations worth knowing (enforced, with tests):
 
-These will be implemented as Godot `Resource` subclasses (or typed dictionaries
-loaded from JSON) in `content/`. Fields listed are the intended shape.
+- A card with no `source_item_id` must be a `status`/`curse` card or carry the
+  `generated` tag — **every real card originates from a physical item**.
+- An item must do something: grant cards, or carry `passive_modifiers`, or be
+  a `quest` item. Consumables require `charges >= 1`.
+- Every enemy needs at least one **unconditional** intent (a guaranteed legal
+  move) and unique intent ids; elites and bosses are mutually exclusive flags.
+- Trauma memories **require a drawback**. Adaptation triggers must name at
+  least one condition (death-cause / enemy / carried-item tags, universes).
+- A body archetype's starting items must fit its attunement slots.
 
-### CardDefinition
-`id`, `display_name`, `source_item_id`, `energy_cost`, `type`
-(attack/skill/power/status/curse), `targeting`, `effects` (list of
-`CardEffectDefinition`), `rarity`, `tags`, `exhaust`, `retain`, `temporary`,
-`consumable`, `universe_theme`, `art_ref`.
+## Authoring content
 
-### CardEffectDefinition
-Composable effect: `kind` (deal_damage / gain_block / heal / draw /
-apply_status / remove_status / modify_energy / add_temp_card / exhaust /
-transform / modify_item / conditional / repeat / random_target), plus
-kind-specific params. **Complex cards compose these; avoid one script per card.**
+Content lives in plain data scripts under `content/` — no editor needed:
 
-### ItemDefinition
-`id`, `display_name`, `category` (weapon / defensive / tool / charm / relic /
-consumable / forbidden / quest / soulbound), `slot_cost`, `granted_card_ids`,
-`passive_modifiers`, `cursed`, `removable`, `charges` (for consumables),
-`universe_availability`, `rarity`, `tags`, `art_ref`.
+```gdscript
+extends RefCounted
+static func content_type() -> String:
+	return "item"
+static func data() -> Array[Dictionary]:
+	return [ { "id": ..., ... }, ... ]
+```
 
-### EnemyDefinition
-`id`, `display_name`, `base_hp`, `tags`, `resistances`, `weaknesses`,
-`intents` (list of `EnemyIntentDefinition`), `behavior`, `loot_table_id`,
-`universe_availability`, `difficulty_modifiers`, `is_elite`, `is_boss`.
+`ContentLoader` (`core/content/content_loader.gd`) hardcodes the script list
+and registers everything at boot (idempotent). To add content: add entries to
+an existing script (or add a script + list it in `ContentLoader.CONTENT_SCRIPTS`),
+then run the tests — `test_sample_content.gd` re-validates the whole set.
 
-### EnemyIntentDefinition
-`id`, `kind` (attack/defend/buff/debuff/special), `value`, `telegraph`,
-`weight` / selection rule.
+## Validation
 
-### StatusEffectDefinition
-`id`, `display_name`, `stacking` (intensity/duration/none), `decay`,
-`hooks` (on_turn_start / on_turn_end / on_take_damage / …), `tags`.
+`ContentRegistry.validate_all()` runs every definition's `validate(self)` plus
+global checks no single definition can see:
 
-### UniverseDefinition
-`id`, `display_name`, `description`, `intro_text`, `theme_tags`,
-`enemy_ids`, `elite_ids`, `boss_ids`, `item_ids`, `event_ids`, `location_ids`,
-`card_theme`, `music_refs`, `difficulty_range`, `unlock_requirements`,
-`base_weight`, `recent_visit_penalty`, `death_cause_weights`, `tattoo_weights`,
-`awareness_modifiers`, `map_gen_settings`.
+- `fixed_order_position` 1, 2, 3 each claimed by exactly one universe
+  (Lovecraft → Japanese → Norse is the mandated opening order).
+- At least one `playable` universe; playable universes need enemies, a boss,
+  and items.
+- At least one body archetype exists.
 
-### EncounterDefinition / MapNodeDefinition
-Encounter: what a node spawns (enemies, event, shop, etc.).
-Map node: `type` (combat / elite / boss / item_search / event / merchant /
-shrine / rest / tattoo / memory_anomaly / treasure / story), connections, weights.
-
-### TattooDefinition
-`id`, `display_name`, `soul_identity`, `functions`, `upgrade_stages`,
-`universe_display_overrides`, `unlock_requirements`, `awareness_delta`.
-
-### MemoryDefinition
-`id`, `type` (instinct / technique / trauma / item), `effect`, `drawback`
-(for trauma), `source_universe`, `unlock_requirements`.
-
-### DeathAdaptationDefinition
-`id`, `display_name`, `trigger` (cause-of-death tags / enemy family / carried
-item), `effect`, `drawback`, `unlock_requirements`. **Adaptations are data, not
-hard-coded branches in the death manager.**
-
-### BodyArchetypeDefinition
-`id`, `display_name`, `base_hp`, `base_energy`, `starting_item_loadout`,
-`base_slots`.
-
-### LootTableDefinition
-`id`, weighted entries of item/card ids, guaranteed drops, universe filters.
-
-### DifficultyDefinition
-`id`, scaling modifiers, unlock requirements.
+Boot calls this after loading (`GameBootstrap._validate_content`) and **fails
+loudly in dev builds** when content is invalid; release builds log and continue.

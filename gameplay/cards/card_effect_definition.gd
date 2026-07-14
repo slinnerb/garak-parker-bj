@@ -90,7 +90,9 @@ func validate(registry, ctx: String, depth: int = 0) -> Array[String]:
 		"modify_energy":
 			if not params.has("delta"):
 				problems.append("%s: kind 'modify_energy' requires param 'delta'" % ctx)
-			elif int(params.get("delta", 0)) == 0:
+			elif not (params.get("delta") is int):
+				problems.append("%s: param 'delta' must be an integer" % ctx)
+			elif int(params.get("delta")) == 0:
 				problems.append("%s: param 'delta' must not be 0" % ctx)
 		"add_temporary_card":
 			var card_id := _require_string("card_id", ctx, problems)
@@ -131,21 +133,32 @@ func validate(registry, ctx: String, depth: int = 0) -> Array[String]:
 # so problem messages are built from the caller-supplied ctx instead.
 # ---------------------------------------------------------------------------
 
-## Required int param: key must be present and coerce to >= minimum.
+## Required int param: key must be present, be a real int (not a coercible
+## String/float — those keep their raw value in `params` for the combat engine
+## to misread), and be >= minimum.
 func _require_int(field: String, minimum: int, ctx: String, problems: Array[String]) -> void:
 	if not params.has(field):
 		problems.append("%s: kind '%s' requires param '%s'" % [ctx, kind, field])
 		return
-	var v := int(params.get(field, 0))
-	if v < minimum:
-		problems.append("%s: param '%s' must be >= %d (got %d)" % [ctx, field, minimum, v])
+	var raw = params.get(field)
+	if not (raw is int):
+		problems.append("%s: param '%s' must be an integer" % [ctx, field])
+		return
+	if raw < minimum:
+		problems.append("%s: param '%s' must be >= %d (got %d)" % [ctx, field, minimum, raw])
 
 
-## Optional int param with a default: absent is fine, present must be >= minimum.
-func _check_int_min(field: String, default_value: int, minimum: int, ctx: String, problems: Array[String]) -> void:
-	var v := int(params.get(field, default_value))
-	if v < minimum:
-		problems.append("%s: param '%s' must be >= %d (got %d)" % [ctx, field, minimum, v])
+## Optional int param with a default: absent is fine; present must be a real
+## int (not a coercible String/float) and >= minimum.
+func _check_int_min(field: String, _default_value: int, minimum: int, ctx: String, problems: Array[String]) -> void:
+	if not params.has(field):
+		return
+	var raw = params.get(field)
+	if not (raw is int):
+		problems.append("%s: param '%s' must be an integer" % [ctx, field])
+		return
+	if raw < minimum:
+		problems.append("%s: param '%s' must be >= %d (got %d)" % [ctx, field, minimum, raw])
 
 
 ## Required non-empty String param. Returns the coerced value for ref checks.

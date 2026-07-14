@@ -45,8 +45,10 @@ func validate(registry) -> Array[String]:
 	# physical items (core design rule).
 	if starting_item_ids.is_empty():
 		problems.append(_ctx("field 'starting_item_ids' must contain at least one item"))
-	for item_id in starting_item_ids:
-		_check_ref(registry, TYPE_ITEM, item_id, "starting_item_ids", problems)
+	# Reports empty entries (which _check_ref would skip) as well as unresolved
+	# ids. An empty entry here would also silently disable the slot-budget check
+	# below, so catching it is what keeps an over-budget loadout from passing.
+	_check_id_list(registry, starting_item_ids, TYPE_ITEM, "starting_item_ids", problems)
 	# Slot budget check is only meaningful when every item resolves; missing
 	# refs are already reported above.
 	if registry != null:

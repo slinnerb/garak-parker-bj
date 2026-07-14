@@ -1,34 +1,49 @@
 # Current State
 
-_Last updated: 2026-07-12 — end of the foundation pass._
+_Last updated: 2026-07-13 — end of the Phase 2 data-model pass._
 
 ## What works today
 
-- **Project boots cleanly** (verified headless): autoloads initialize in order,
-  `GameBootstrap` runs the boot sequence, state transitions `BOOT → MAIN_MENU`,
-  and the main menu scene loads with **zero errors**.
+- **Project boots cleanly** (verified headless): autoloads initialize,
+  `GameBootstrap` loads **69 content definitions**, content validation passes,
+  state transitions `BOOT → MAIN_MENU`, main menu loads with **zero errors**.
 - **Core services** (all autoloaded):
   - `Log` — category/level logging to console + `user://logs/session.log`.
   - `EventBus` — global signals for high-level transitions.
   - `RNG` — deterministic named streams from a master seed.
   - `SaveManager` — atomic, versioned save/load; 3 domains; backups; corruption
     quarantine; crash recovery.
-  - `ContentRegistry` — id-keyed register/lookup/validate (empty, ready for data).
+  - `ContentRegistry` — id-keyed register/lookup + per-definition and global
+    cross-content validation (`validate_all`), `clear()` for tests/tools.
   - `Updater` — GitHub Releases update check with graceful error handling.
   - `SceneFlow`, `GameState`, `GameBootstrap`.
-- **Main menu** with a working **Check for Updates** button, version label, and
-  an update dialog that opens the download page. Gameplay buttons (New Life /
-  Continue / Settings) are present but honestly disabled until their systems
-  exist.
+- **Phase 2 data model** — 13 definition classes on a shared `ContentDefinition`
+  base (`from_dict` defensive parsing, `validate(registry)` problem reporting):
+  cards + composable effects (14 effect kinds incl. conditional/repeat/nesting),
+  items (9 categories, slot costs, granted cards, passives, curses, charges),
+  enemies + weighted conditional intents, statuses (stacking/decay/hooks),
+  universes (weights, unlock reqs, fixed-order positions), map node types, loot
+  tables, difficulties, tattoos, memories, death adaptations, body archetypes.
+- **Sample content (validates clean at boot)** — the vertical-slice Lovecraft
+  set: 13 items, 15 cards (bidirectionally linked to items), 3 normal enemies +
+  1 elite + 1 boss, 6 statuses, 3 loot tables, 3 universes (Lovecraft playable;
+  Japanese/Norse samples at fixed order 1/2/3), 2 difficulties, 12 map node
+  types, coastal_drifter archetype, 2 tattoos, 3 memories, 3 adaptations —
+  loaded by `ContentLoader` at boot.
+- **Main menu** with a working **Check for Updates** button and version label.
+  Gameplay buttons (New Life / Continue / Settings) still honestly disabled.
 - **Release pipeline** — `tools/release/release.ps1` bumps the version, exports
-  Windows, zips, and publishes a GitHub release.
-- **Update system is live and verified** against the public repo
-  **github.com/slinnerb/garak-parker-bj**. Verified end-to-end (headless):
-  the "up to date" path (no releases) and the "update available" path (a newer
-  release is detected with its notes + download URL), using a throwaway release
-  that was then removed. Repo currently has no releases (clean at 0.1.0).
-- **Tests** — 22 unit tests across SemVer, RNG determinism, save round-trip /
-  backup / corruption / merge, and version wiring. **All green** (exit 0).
+  Windows, zips, and publishes a GitHub release. Update system verified
+  end-to-end against **github.com/slinnerb/garak-parker-bj**.
+- **Tests — 48 unit tests, all green** (exit 0): SemVer, RNG determinism, save
+  round-trip/backup/corruption/merge, version wiring, definition parsing +
+  validation rules, registry cross-checks (incl. bidirectional card↔item link
+  and surfaced load failures), and full sample-content validation.
+- **Adversarial review pass complete**: a multi-agent review found and confirmed
+  7 validation-hardening issues (over-permissive coercion letting fractional/
+  non-int params and empty-string references validate clean; card↔item links
+  only existence-checked; dropped definitions not surfacing at boot). All 7 are
+  fixed with regression tests. See [DECISIONS.md](DECISIONS.md).
 
 ## Verified commands
 
@@ -42,21 +57,19 @@ _Last updated: 2026-07-12 — end of the foundation pass._
 
 ## Known limitations / not yet built
 
-- **No gameplay** yet: no combat, cards, items, inventory/attunement, map,
-  enemies, death/reincarnation, memories, or tattoos. These are Phases 2–7.
-- **Export templates not installed**: producing the actual `.exe` needs the
-  Godot 4.7 export templates (one-time editor install). The in-game update
-  check and `-DryRun` do not need them.
-- **Not visually smoke-tested on a real display in this pass** beyond the
-  headless boot (the menu is a simple Control layout; low risk).
-- **No settings screen, no debug panel** yet (Phase 1.5 / later).
-- **Two universe definitions (Japanese, Norse)** and their content are not yet
-  present; only the data architecture is planned.
+- **No gameplay systems** yet: the data model exists, but combat, inventory /
+  attunement, map generation, and death/reincarnation logic are Phases 3–7.
+- **Export templates not installed** (user deferred): producing the actual
+  `.exe` needs the one-time ~900 MB Godot 4.7 template download; no GitHub
+  release published yet.
+- **No settings screen, no debug panel** yet.
+- **Japanese/Norse universes** are unplayable samples by design (fixed order
+  positions 2 and 3, `playable = false`).
 
 ## Immediate next task
 
-Install the Godot 4.7 export templates and cut the first real `v0.1.0` release
-(so there's a downloadable build for a friend), then begin **Phase 2: data
-model** — starting with `CardDefinition` / `CardEffectDefinition` and
-`ItemDefinition`, since the item→deck relationship is the spine of the whole
-game.
+**Phase 3: combat** — player/enemy combat state, deck/hand/draw/discard piles,
+card execution through the effect definitions, statuses, deterministic enemy
+intents, victory/defeat. All headless-testable domain logic first, then the
+combat scene. (Phase 4 then derives the deck from equipped items — the spine
+of the game.)

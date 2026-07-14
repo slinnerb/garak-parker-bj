@@ -19,7 +19,7 @@ static func data() -> Array[Dictionary]:
 			"description": "Three faint lines below each ear. A doctor would call them birthmarks. They open, very slightly, near deep water.",
 			"tags": ["drowning"],
 			"trigger": {"death_cause_tags": ["drowning"]},
-			"effect": {"kind": "damage_resist_pct", "damage_tag": "water", "amount": 25},
+			"effect": {"kind": "damage_resist_pct", "enemy_tag": "drowned", "amount": 25},
 			"drawback": {"kind": "damage_taken_pct", "damage_type": "fire", "amount": 10},
 			"unlock_requirements": {},
 		},

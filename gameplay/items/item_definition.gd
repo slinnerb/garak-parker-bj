@@ -58,12 +58,7 @@ func validate(registry) -> Array[String]:
 		problems.append(_ctx("slot_cost %d out of range (0..4)" % slot_cost))
 	elif slot_cost == 0 and category != "quest":
 		problems.append(_ctx("slot_cost 0 is only allowed for quest items"))
-	for card_id in granted_card_ids:
-		if card_id.is_empty():
-			# _check_ref skips empty ids, so catch the malformed entry here.
-			problems.append(_ctx("granted_card_ids contains an empty id"))
-		else:
-			_check_ref(registry, ContentDefinition.TYPE_CARD, card_id, "granted_card_ids", problems)
+	_check_id_list(registry, granted_card_ids, ContentDefinition.TYPE_CARD, "granted_card_ids", problems)
 	for i in passive_modifiers.size():
 		var kind = passive_modifiers[i].get("kind", "")
 		if not (kind is String) or (kind as String).is_empty():

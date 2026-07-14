@@ -118,16 +118,6 @@ func validate(registry) -> Array[String]:
 	return problems
 
 
-## Every id in a content list must resolve. Empty strings would be silently
-## skipped by _check_ref (it treats empty as "optional ref"), so catch them here.
-func _check_id_list(registry, ids: Array[String], ref_type: String, field: String, problems: Array[String]) -> void:
-	for ref_id in ids:
-		if ref_id.is_empty():
-			problems.append(_ctx("field '%s' contains an empty id" % field))
-		else:
-			_check_ref(registry, ref_type, ref_id, field, problems)
-
-
 ## Enemies must be listed under the tier matching their flags — otherwise map
 ## generation would seed bosses into normal fights (or vice versa). Missing
 ## refs are already reported by _check_id_list, so nulls are skipped here.
