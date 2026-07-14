@@ -122,6 +122,44 @@ func test_hand_drawn_and_discarded_each_turn() -> void:
 	# After the enemy acts, a new player turn drew the reshuffled deck again.
 	assert_eq(combat.player.hand.size(), 3, "a fresh hand is drawn next turn")
 
+func test_fortified_grants_block_next_turn() -> void:
+	# Regression: Fortified's on_turn_start hook must actually fire. With the
+	# earlier decay:turn_end it decayed before ever granting block. Use a
+	# non-damaging dummy so the player's block isn't spent before we check it.
+	var passive := DUMMY_ENEMY.duplicate()
+	passive["intents"] = [{"id": "wait", "kind": "defend", "amount": 3, "telegraph": "It waits.", "weight": 1.0}]
+	var combat := _combat(20, ["shield_wall"], [passive])
+	combat.start_combat()
+	assert_eq(combat.turn_number, 1, "starts on turn 1")
+	_play(combat, "shield_wall")  # +9 block, +1 Fortified
+	combat.end_player_turn()      # enemy waits; next player turn begins
+	assert_eq(combat.turn_number, 2, "reached turn 2")
+	assert_eq(combat.player.block, 2, "Fortified grants 2 block at the start of turn 2")
+	assert_false(combat.player.has_status("fortified"), "the single stack then fades")
+
+func test_start_of_turn_dot_latches_defeat() -> void:
+	# Regression: a lethal start-of-turn damage-over-time must end the combat in
+	# start_player_turn, not leave the player 'dead but still acting'.
+	_load_content()
+	# A custom status that deals damage at turn start (the engine supports this
+	# generically even though no shipped status uses it yet).
+	var bleed := StatusEffectDefinition.from_dict({
+		"id": "test_bleed", "display_name": "Bleeding", "stacking": "intensity", "decay": "none",
+		"hooks": {"on_turn_start": {"action": "take_damage", "amount_per_stack": 5}},
+	})
+	ContentRegistry.register(ContentDefinition.TYPE_STATUS, bleed.id, bleed)
+	var rng := RngStream.new(1)
+	var player := PlayerState.new("player", "Wanderer", 70, 3, 5)
+	player.add_to_draw_pile(CardInstance.new(ContentRegistry.get_def("card", "harpoon_thrust")))
+	var enemy := EnemyState.from_definition(EnemyDefinition.from_dict(DUMMY_ENEMY), rng)
+	var combat := CombatState.new(ContentRegistry, rng, player, [enemy])
+	combat.start_combat()
+	combat.player.hp = 4
+	StatusEngine.apply_status(ContentRegistry, combat.player, "test_bleed", 1)  # 5/turn
+	combat.end_player_turn()  # enemy acts, then turn 2 starts -> bleed kills the player
+	assert_true(combat.is_defeat(), "start-of-turn DoT that reaches 0 HP is a defeat")
+	assert_false(combat.can_play(0), "a dead player cannot act")
+
 func test_full_fight_is_deterministic() -> void:
 	var log_a := _auto_fight_log(4242)
 	var log_b := _auto_fight_log(4242)

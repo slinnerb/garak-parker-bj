@@ -1,6 +1,6 @@
 # Current State
 
-_Last updated: 2026-07-13 — end of the Phase 2 data-model pass._
+_Last updated: 2026-07-14 — Phase 3 combat engine (headless domain)._
 
 ## What works today
 
@@ -35,10 +35,27 @@ _Last updated: 2026-07-13 — end of the Phase 2 data-model pass._
 - **Release pipeline** — `tools/release/release.ps1` bumps the version, exports
   Windows, zips, and publishes a GitHub release. Update system verified
   end-to-end against **github.com/slinnerb/garak-parker-bj**.
-- **Tests — 48 unit tests, all green** (exit 0): SemVer, RNG determinism, save
+- **Phase 3 combat engine (headless, domain-level)** — a full turn-based fight
+  runs with no scene: `CombatState` orchestrates the loop (start → player
+  draw/play/end → enemies act on telegraphed intents → repeat) over
+  `PlayerState`/`EnemyState`/`Combatant`, the four card piles, and
+  `CardInstance`. `EffectExecutor` runs all 14 composable effect kinds;
+  `StatusEngine` interprets status data (stacking, decay, damage modifiers, turn
+  hooks like Burning/Regeneration/Fortified/Hallucinating); `IntentSelector` is
+  a deterministic weighted/sequence enemy AI honoring HP/first-turn/cooldown/
+  max-uses conditions. Damage runs the full outgoing×incoming×resistance chain
+  through block; victory/defeat latch (defeat wins ties). Not yet wired to a
+  combat scene or to run/map flow.
+- **Combat passed an adversarial review**: a multi-agent review confirmed 3 bugs
+  (Fortified self-nullified via a hook/decay phase mismatch; defeat not latching
+  on a start-of-turn damage-over-time; a "random" transform that wasn't). All
+  fixed with regression tests. See [DECISIONS.md](DECISIONS.md).
+- **Tests — 79 unit tests, all green** (exit 0): SemVer, RNG determinism, save
   round-trip/backup/corruption/merge, version wiring, definition parsing +
   validation rules, registry cross-checks (incl. bidirectional card↔item link
-  and surfaced load failures), and full sample-content validation.
+  and surfaced load failures), full sample-content validation, and the combat
+  engine (integration against real content, status mechanics, intent gating,
+  full-fight determinism).
 - **Adversarial review pass complete**: a multi-agent review found and confirmed
   7 validation-hardening issues (over-permissive coercion letting fractional/
   non-int params and empty-string references validate clean; card↔item links
@@ -57,8 +74,10 @@ _Last updated: 2026-07-13 — end of the Phase 2 data-model pass._
 
 ## Known limitations / not yet built
 
-- **No gameplay systems** yet: the data model exists, but combat, inventory /
-  attunement, map generation, and death/reincarnation logic are Phases 3–7.
+- **Combat has no UI yet** and isn't wired into a run/map flow — it's a
+  headless domain engine (Phase 3b adds the scene). Inventory/attunement (the
+  deck is currently built by listing card ids, not derived from items),
+  map generation, and death/reincarnation are Phases 4–7.
 - **Export templates not installed** (user deferred): producing the actual
   `.exe` needs the one-time ~900 MB Godot 4.7 template download; no GitHub
   release published yet.
@@ -68,8 +87,8 @@ _Last updated: 2026-07-13 — end of the Phase 2 data-model pass._
 
 ## Immediate next task
 
-**Phase 3: combat** — player/enemy combat state, deck/hand/draw/discard piles,
-card execution through the effect definitions, statuses, deterministic enemy
-intents, victory/defeat. All headless-testable domain logic first, then the
-combat scene. (Phase 4 then derives the deck from equipped items — the spine
-of the game.)
+**Phase 3b: combat UI** — a combat scene that renders `CombatState` (hand,
+piles, HP/block/energy, enemy intents) and sends `play_card` / `end_turn`
+commands, so a fight is playable on screen. Then **Phase 4** derives the deck
+from attuned items (inventory/attunement) — the spine that connects items to
+the combat deck.

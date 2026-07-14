@@ -76,10 +76,13 @@ static func data() -> Array[Dictionary]:
 		{
 			"id": "fortified",
 			"display_name": "Fortified",
-			"description": "Braced like a hull against the storm. Gains block at the start of each turn.",
+			"description": "Braced like a hull against the storm. Gains block at the start of each turn, fading by one each time.",
 			"tags": ["defense"],
 			"stacking": "intensity",
-			"decay": "turn_end",
+			# decay must match the hook phase (turn_start): the hook grants block at
+			# turn start, then the stack fades. With decay turn_end the single stack
+			# would be gone before the on_turn_start hook ever fired.
+			"decay": "turn_start",
 			"is_debuff": false,
 			"hooks": {
 				"on_turn_start": {"action": "gain_block", "amount_per_stack": 2},

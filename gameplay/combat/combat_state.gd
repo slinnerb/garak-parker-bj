@@ -70,6 +70,11 @@ func start_player_turn() -> void:
 	# draw pile), then decay, then refill and draw so conjured cards can be drawn.
 	StatusEngine.run_turn_hook(self, player, "on_turn_start")
 	StatusEngine.apply_decay(content, player, "turn_start")
+	# A start-of-turn damage-over-time status could be lethal; latch defeat before
+	# handing control back, or the player would keep acting while dead.
+	_check_outcome()
+	if is_over():
+		return
 	player.refill_energy()
 	player.draw(player.hand_size, rng)
 	log_event("Player turn %d (energy %d, hand %d)" % [turn_number, player.energy, player.hand.size()])
@@ -78,7 +83,7 @@ func start_player_turn() -> void:
 ## True if the card at hand index can be played right now (turn, playability,
 ## energy). Cheap enough for the UI to gate buttons with.
 func can_play(hand_index: int) -> bool:
-	if is_over() or phase != PHASE_PLAYER_TURN:
+	if is_over() or phase != PHASE_PLAYER_TURN or not player.is_alive():
 		return false
 	if hand_index < 0 or hand_index >= player.hand.size():
 		return false
@@ -253,11 +258,15 @@ func exhaust_random_in_hand(exclude: CardInstance, stream: RngStream) -> void:
 	player.exhaust_pile.append(chosen)
 
 
-func transform_random_in_hand(exclude: CardInstance, into_def: CardDefinition) -> void:
+func transform_random_in_hand(exclude: CardInstance, into_def: CardDefinition, stream: RngStream) -> void:
+	var indices: Array = []
 	for i in player.hand.size():
 		if player.hand[i] != exclude:
-			player.hand[i] = CardInstance.new(into_def)
-			return
+			indices.append(i)
+	if indices.is_empty():
+		return
+	var chosen: int = stream.pick(indices)
+	player.hand[chosen] = CardInstance.new(into_def)
 
 
 func living_enemies() -> Array:

@@ -3,6 +3,57 @@
 Reasonable assumptions and deliberate choices, recorded so future work doesn't
 re-litigate them. Newest first.
 
+## 2026-07-14 — Phase 3 combat engine
+
+### Combat is a headless domain engine; UI observes it (built later)
+All combat rules live in plain `class_name` RefCounted classes under
+`gameplay/combat/` (`CombatState` orchestrator + `Combatant`/`PlayerState`/
+`EnemyState`, `CardInstance`, and the `StatusEngine`/`EffectExecutor`/
+`IntentSelector` subsystems). No autoloads, no nodes: the content provider and
+RNG stream are injected. This is why the whole turn loop is unit-testable
+(master prompt §10–11 require enemy behavior testable without rendering). The
+combat scene (Phase 3b) will render `CombatState` and send `play_card`/
+`end_player_turn` — it will hold no rules.
+
+### One effect executor; no per-card scripts
+`EffectExecutor` interprets all 14 `CardEffectDefinition` kinds; containers
+(conditional/repeat/random_target) recurse. Cards are pure data composing these
+atoms, per the §5/§10 architecture rule. Card conditions are still open
+(`chance_pct` is the only one content uses); the executor evaluates a small set
+and fails closed on unknown keys until Phase 6 formalizes the vocabulary.
+
+### Combat rule calls made explicit (surfaced during implementation)
+- **Damage chain**: `outgoing(attacker) × incoming(defender) × type-resistance
+  (enemies only) → round → block`, recomputed per hit so multi-hit interacts
+  correctly with block and mid-sequence death. Players have no damage-type
+  resistances yet (adaptations add them in Phase 6).
+- **Damage-over-time ignores block** (Burning), matching the genre convention;
+  direct attacks go through block.
+- **Defeat wins ties**: if the player and the last enemy would both die on one
+  exchange, the outcome is defeat (permadeath is the point — see
+  [[garak-parker-roguelike]] / GAME_VISION).
+- **Status/curse cards are unplayable** in the engine (`can_play` refuses them),
+  making the "Unplayable" flavor real without a new data flag.
+
+### Status hook phase must match decay phase (Fortified fix)
+An adversarial review of combat confirmed `fortified` granted zero block: its
+block hook fires at `on_turn_start` but decay was `turn_end`, so a 1-stack
+application (all shipped content) decayed before the hook could ever run. Fixed
+by aligning decay to the hook phase (`turn_start`): the hook grants block at
+turn start, then the stack fades. General rule for status content: a status
+whose only hook is `on_turn_start` must not decay at `turn_end` (and vice
+versa), or it self-nullifies. Regression test:
+`test_combat.test_fortified_grants_block_next_turn` drives this through the real
+turn loop (not the hook in isolation, which is what hid the bug originally).
+
+### Terminal outcome is checked after every hook, including turn start
+The same review found `start_player_turn` ran the player's `on_turn_start` hooks
+without re-checking the outcome, so a lethal start-of-turn damage-over-time
+status could leave the player "dead but still acting" (defeat never latched,
+`can_play` still returned true). Every hook/damage site now calls
+`_check_outcome()`; `can_play` also guards on `player.is_alive()`. Regression:
+`test_start_of_turn_dot_latches_defeat`.
+
 ## 2026-07-13 — Genre confirmation + Phase 2 data model
 
 ### Genre: roguelite, confirmed by the user — plus "fate-shaping"

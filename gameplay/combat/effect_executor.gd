@@ -120,7 +120,7 @@ static func _transform_card(ctx: EffectContext, effect: CardEffectDefinition) ->
 	var into_def = ctx.content.get_def(TYPE_CARD, into_id)
 	if into_def == null:
 		return
-	ctx.combat.transform_random_in_hand(ctx.card, into_def)
+	ctx.combat.transform_random_in_hand(ctx.card, into_def, ctx.rng)
 
 
 static func _random_target(ctx: EffectContext, effect: CardEffectDefinition) -> void:

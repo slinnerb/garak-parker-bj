@@ -40,12 +40,13 @@ stable.** Checkboxes reflect reality.
       (13 items, 15 cards, 5 enemies), loaded by `ContentLoader` at boot
 
 ## Phase 3 — Combat
-- [ ] Player + enemy state (domain-level, headless-testable)
-- [ ] Deck / hand / draw / discard / exhaust
-- [ ] Card execution via reusable effects
-- [ ] Status effects, buffs/debuffs
-- [ ] Enemy intents (deterministic), victory/defeat
-- [ ] Combat UI (display state, send commands)
+- [x] Player + enemy state (domain-level, headless-testable)
+- [x] Deck / hand / draw / discard / exhaust (deterministic reshuffle)
+- [x] Card execution via reusable effects (all 14 effect kinds, composed)
+- [x] Status effects, buffs/debuffs (stacking, decay, hooks, damage modifiers)
+- [x] Enemy intents (deterministic weighted/sequence AI with conditions),
+      victory/defeat latching
+- [ ] Combat UI (display state, send commands) — next: Phase 3b
 
 ## Phase 4 — Item & deck integration
 - [ ] Inventory + attunement slots (6–8, multi-slot items)
