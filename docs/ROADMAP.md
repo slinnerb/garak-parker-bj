@@ -46,7 +46,9 @@ stable.** Checkboxes reflect reality.
 - [x] Status effects, buffs/debuffs (stacking, decay, hooks, damage modifiers)
 - [x] Enemy intents (deterministic weighted/sequence AI with conditions),
       victory/defeat latching
-- [ ] Combat UI (display state, send commands) — next: Phase 3b
+- [x] Combat UI (Phase 3b): playable combat scene — hand, enemy intents,
+      HP/block/energy, piles, log, target selection, victory/defeat overlay.
+      Reachable from the main menu (demo fight until the run flow exists).
 
 ## Phase 4 — Item & deck integration
 - [ ] Inventory + attunement slots (6–8, multi-slot items)

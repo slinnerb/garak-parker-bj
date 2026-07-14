@@ -1,6 +1,6 @@
 # Current State
 
-_Last updated: 2026-07-14 — Phase 3 combat engine (headless domain)._
+_Last updated: 2026-07-14 — Phase 3b: combat is playable on screen._
 
 ## What works today
 
@@ -74,10 +74,13 @@ _Last updated: 2026-07-14 — Phase 3 combat engine (headless domain)._
 
 ## Known limitations / not yet built
 
-- **Combat has no UI yet** and isn't wired into a run/map flow — it's a
-  headless domain engine (Phase 3b adds the scene). Inventory/attunement (the
-  deck is currently built by listing card ids, not derived from items),
-  map generation, and death/reincarnation are Phases 4–7.
+- **Combat is playable on screen** (Main Menu → New Life → a demo fight), but it
+  isn't wired into a run/map flow yet, and the deck is a fixed demo built from
+  the starting archetype's item cards rather than a real inventory. Inventory/
+  attunement (deriving the deck from carried items), map generation, and
+  death/reincarnation are Phases 4–7.
+- **No turn animation**: enemy turns resolve instantly; the log shows the
+  sequence. Stepped/animated resolution is a later polish pass.
 - **Export templates not installed** (user deferred): producing the actual
   `.exe` needs the one-time ~900 MB Godot 4.7 template download; no GitHub
   release published yet.
@@ -87,8 +90,10 @@ _Last updated: 2026-07-14 — Phase 3 combat engine (headless domain)._
 
 ## Immediate next task
 
-**Phase 3b: combat UI** — a combat scene that renders `CombatState` (hand,
-piles, HP/block/energy, enemy intents) and sends `play_card` / `end_turn`
-commands, so a fight is playable on screen. Then **Phase 4** derives the deck
-from attuned items (inventory/attunement) — the spine that connects items to
-the combat deck.
+**Phase 4: items → deck (inventory & attunement).** Replace the demo deck with
+a real one derived from carried/attuned items: inventory, attunement slots
+(6–8, some items multi-slot), and the deck rebuilding when items are equipped/
+removed. This is the spine of the game — equipment and deckbuilding as one
+system — and it's what makes the combat screen show a deck the player shaped.
+(The between-life hub and the seeded run map, Phase 5, then place combats in a
+run instead of the current direct-to-demo entry.)

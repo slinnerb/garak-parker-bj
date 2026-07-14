@@ -9,11 +9,20 @@ extends Node
 ## Canonical scene paths. Keep the rest of the game from hard-coding res:// URIs.
 const MAIN_MENU := "res://scenes/menus/main_menu.tscn"
 const BOOT := "res://scenes/boot/boot.tscn"
+const COMBAT := "res://scenes/combat/combat_scene.tscn"
 
 
 func goto_main_menu() -> void:
 	GameState.set_state(GameState.State.MAIN_MENU)
 	change_scene(MAIN_MENU)
+
+
+## Enters combat. Combat is part of a life, so the coarse state is RUN. Until the
+## run/map flow exists (Phases 4-5) the combat scene builds its own demo fight;
+## this is the temporary entry point.
+func goto_combat() -> void:
+	GameState.set_state(GameState.State.RUN)
+	change_scene(COMBAT)
 
 
 ## Swaps to the scene at `path`. Logs and announces via EventBus.
