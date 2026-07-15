@@ -6,20 +6,30 @@ become your cards, fight, and eventually die. Death is the core mechanic — the
 soul carries adaptations, memories, and tattoos into the next life, while the
 body and its equipment are lost.
 
-> This repository currently contains the **foundation** (engine shell, core
-> services, save system, update system, and a working main menu). Gameplay
-> systems — combat, cards, items, the run map, death/reincarnation — are built
-> in later phases. See [docs/ROADMAP.md](docs/ROADMAP.md) and
-> [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md).
+> **Status — v0.1.0, first playable build.** A vertical slice of the core loop
+> runs on screen: **main menu → attune a loadout → turn-based combat → win/lose.**
+> Your attuned gear generates your deck, enemies telegraph their intent, statuses
+> resolve, and the game checks for and installs its own updates from GitHub.
+> Still ahead: the seeded **run map** and the full **death / reincarnation** loop.
+> See [docs/ROADMAP.md](docs/ROADMAP.md) and [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md).
+
+## Play it
+
+Download the latest build from the
+**[Releases page](https://github.com/slinnerb/garak-parker-bj/releases)**, unzip,
+and run `ReincarnationRoguelike.exe` — a single self-contained file, no install.
+On first launch Windows SmartScreen may warn about the unsigned exe: choose
+*More info ▸ Run anyway*. The game checks for updates on launch and can update
+itself (click the version number any time for the changelog + a manual check).
 
 ## Tech
 
 - **Engine:** Godot 4.7 (stable), GDScript
 - **Renderer:** GL Compatibility (broad hardware support)
-- **Platform:** Windows desktop first
+- **Platform:** Windows desktop first (Steam-ready architecture)
 - **Base resolution:** 1280×720, resolution-independent (canvas_items stretch)
 
-## Running the project
+## Running from source
 
 The Godot 4.7 editor binary on this machine is:
 
@@ -27,13 +37,11 @@ The Godot 4.7 editor binary on this machine is:
 C:\CricketsGame\TheLastUpdate\Godot_v4.7-stable_win64.exe
 ```
 
-Open the folder in that editor, or run it from the command line:
-
 ```powershell
 # Play the game
 & "C:\CricketsGame\TheLastUpdate\Godot_v4.7-stable_win64.exe" --path .
 
-# Boot headlessly (no window) — useful for smoke-checking logs
+# Boot headlessly (no window) — smoke-check the startup logs
 & "C:\CricketsGame\TheLastUpdate\Godot_v4.7-stable_win64.exe" --headless --path . --quit-after 150
 ```
 
@@ -43,47 +51,43 @@ Open the folder in that editor, or run it from the command line:
 & "C:\CricketsGame\TheLastUpdate\Godot_v4.7-stable_win64.exe" --headless --path . --script res://tests/run_all.gd
 ```
 
-Exit code is `0` when all tests pass, `1` otherwise. Tests live in
+Exit code `0` when all pass (**102 tests** currently). Tests live in
 `tests/unit/` and extend `TestCase`; drop a new `test_*.gd` file there and the
-runner finds it automatically.
+runner finds it automatically. (The one `Parse JSON failed` line during a run is
+an intentional corrupt-save test, not a failure.)
 
-## Updates ("Check for Updates")
+## Building & shipping updates
 
-The game can tell your friend when a newer build exists, via **GitHub Releases**.
-
-**One-time setup**
-
-1. Create a **public** GitHub repo for this project.
-2. Set the repo name in [`core/update/update_config.gd`](core/update/update_config.gd)
-   (`GITHUB_REPO`). The owner is already `slinnerb`.
-3. Push the code.
-
-**Shipping an update to your friend**
+Godot 4.7 **export templates are installed**, so one command builds and ships:
 
 ```powershell
-./tools/release/release.ps1 -Version 0.2.0 -Notes "What changed in this build."
+./tools/release/release.ps1 -Version 0.2.0        # notes pulled from CHANGELOG.md
+./tools/release/release.ps1 -Version 0.2.0 -DryRun # build + zip, no publish
 ```
 
-That script bumps the version in `project.godot`, exports the Windows build,
-zips it, and publishes a GitHub release tagged `v0.2.0`. Your friend's copy,
-when they press **Check for Updates**, compares its version to the latest
-release and offers to open the download page.
-
-> Exporting a build requires Godot **export templates** for 4.7 to be installed
-> (one-time: open the project in Godot → *Editor ▸ Manage Export Templates ▸
-> Download and Install*). Until then, `-DryRun` and the in-game update check
-> still work; only the actual `.exe` export needs templates.
+It bumps the version in `project.godot`, exports the self-contained Windows
+build, zips it, and publishes a GitHub release with notes taken from the matching
+`CHANGELOG.md` section. Players **auto-update**: on launch their copy sees the
+newer release, shows the changelog, and (on confirm) downloads it, replaces the
+running build via a helper, and relaunches. See
+[docs/DECISIONS.md](docs/DECISIONS.md) for the mechanism, and keep
+[CHANGELOG.md](CHANGELOG.md) as the single source of release notes.
 
 ## Project layout
 
 ```
-core/          Engine-level services (autoloads): logging, events, RNG,
-               save, content registry, scene flow, state, bootstrap, update.
-gameplay/      (future) Combat, cards, items, map, death, progression, etc.
-content/       (future) Data-driven definitions (cards, enemies, universes…).
-scenes/        Godot scenes (boot, menus, and later combat/map/hub).
+core/          Engine-level services (autoloads): logging, events, RNG, save,
+               content registry, scene flow, state, bootstrap, update/self-update.
+gameplay/      Domain logic (no autoloads, headless-testable):
+                 combat/     turn-based engine (state, effects, statuses, AI)
+                 inventory/  Inventory + Attunement (items -> deck)
+                 cards/ items/ enemies/ universes/ ...  data definitions
+content/       Data-driven content (Lovecraft items/cards/enemies, statuses,
+               universes, tattoos, memories, adaptations, archetypes).
+presentation/  Shared UI kit (palette + builders).
+scenes/        Godot scenes: boot, menus (+ updates panel), combat, hub (attune).
 tests/         Headless test runner + unit tests.
-tools/         Release pipeline and (future) debug/validation tooling.
+tools/         Release pipeline + debug tools (screenshot, update check).
 docs/          Design and architecture documentation.
 ```
 

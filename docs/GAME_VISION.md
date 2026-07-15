@@ -69,12 +69,17 @@ eventually a choice of starting region when a life begins. Narratively this is
 the soul learning to steer the current between lives; mechanically every step
 stays seeded and deterministic.
 
-## What the vertical slice will prove (not yet built)
+## What the vertical slice will prove
 
 One complete, playable loop in the Lovecraftian Coast: explore → find items →
 build a deck → fight → hit an elite and a boss → die → record cause of death →
 Moment of Recall → pick one adaptation → reincarnate measurably stronger, with
 Memory Tattoos unlocking on the second death.
+
+**Built so far** (v0.1.0): the middle of that loop — attune items into a deck,
+and fight a turn-based combat to a win/loss. **Still to close the loop:** the
+run map (explore → elite → boss) and death → Moment of Recall → reincarnation.
+See [CURRENT_STATE.md](CURRENT_STATE.md) and [ROADMAP.md](ROADMAP.md).
 
 ## Non-goals for now
 

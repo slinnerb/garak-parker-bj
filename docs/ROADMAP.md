@@ -25,9 +25,10 @@ stable.** Checkboxes reflect reality.
 - [x] Auto-update: check on launch, changelog-driven prompt, download + self-
       replace + relaunch (`SelfUpdater`); `CHANGELOG.md` as the notes source;
       clickable version → Updates & Version History panel
-- [ ] Install export templates; cut a first real `v0.1.0` release with a build
-      **(also validates the auto-update swap/relaunch, which is untested until
-      a real build + release exists)**
+- [x] Install export templates; cut the first real **`v0.1.0`** release with a
+      build (public zip live; exe boots; updater verified against it)
+- [ ] Validate the auto-update swap/relaunch end to end (cut a `v0.1.1`, run the
+      shipped `v0.1.0` exe, watch it self-update) — the one untested step
 - [ ] Settings screen (audio/video/accessibility) wired to `SaveManager`
 - [ ] Debug panel scaffold (dev-only)
 

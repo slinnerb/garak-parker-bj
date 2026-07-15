@@ -36,11 +36,15 @@ _Last updated: 2026-07-14 — Phase 4: your gear is your deck._
   launch**; if a newer build exists it shows what changed and an **Update &
   Relaunch** that downloads the build, self-replaces via a helper, and restarts
   (`SelfUpdater`). Browser hand-off remains the fallback (editor/non-Windows/no
-  asset). The download→swap→relaunch path is implemented but can't be verified
-  until the first real build + release exists.
-- **Release pipeline** — `tools/release/release.ps1` bumps the version, exports
-  Windows, zips, and publishes a GitHub release. Update system verified
-  end-to-end against **github.com/slinnerb/garak-parker-bj**.
+  asset). Verified against the real **v0.1.0** release: the launch check reports
+  up-to-date, and `extract_exe` unpacks the correct exe from the real release
+  zip. Only the final file-swap+relaunch is unverified (needs a packaged run
+  against a *newer* release).
+- **Shipped: v0.1.0 is a public, downloadable build.** Export templates are
+  installed; `tools/release/release.ps1 -Version X.Y.Z` builds the self-contained
+  Windows exe, zips it, and publishes a GitHub release with notes pulled from
+  `CHANGELOG.md`. **github.com/slinnerb/garak-parker-bj/releases/tag/v0.1.0** is
+  live (36 MB zip); the exe boots clean.
 - **Phase 3 combat engine (headless, domain-level)** — a full turn-based fight
   runs with no scene: `CombatState` orchestrates the loop (start → player
   draw/play/end → enemies act on telegraphed intents → repeat) over
@@ -89,16 +93,17 @@ _Last updated: 2026-07-14 — Phase 4: your gear is your deck._
 
 ## Known limitations / not yet built
 
-- **Combat is playable on screen** (Main Menu → New Life → a demo fight), but it
-  isn't wired into a run/map flow yet, and the deck is a fixed demo built from
-  the starting archetype's item cards rather than a real inventory. Inventory/
-  attunement (deriving the deck from carried items), map generation, and
-  death/reincarnation are Phases 4–7.
+- **No run structure yet.** Combat is playable (Main Menu → New Life → attune →
+  fight), and the deck is now derived from a real `Attunement`, but it isn't
+  strung into a *run*: there's no map, and the demo's carried items are a
+  stand-in for scavenging until the map hands out loot. Map generation is
+  Phase 5; death/reincarnation is Phase 6.
 - **No turn animation**: enemy turns resolve instantly; the log shows the
   sequence. Stepped/animated resolution is a later polish pass.
-- **Export templates not installed** (user deferred): producing the actual
-  `.exe` needs the one-time ~900 MB Godot 4.7 template download; no GitHub
-  release published yet.
+- **Self-update's final relaunch is unverified.** Check + download + extract are
+  proven against the real v0.1.0 release; the actual file-swap+relaunch needs a
+  packaged run against a *newer* release (cut a v0.1.1 to demonstrate it).
+- **Relic passive modifiers** are collected but not yet applied in combat.
 - **No settings screen, no debug panel** yet.
 - **Japanese/Norse universes** are unplayable samples by design (fixed order
   positions 2 and 3, `playable = false`).
