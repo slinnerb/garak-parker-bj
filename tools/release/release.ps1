@@ -169,7 +169,9 @@ Info "Creating GitHub release $Tag"
 # Pass notes via a file: the changelog contains markdown ([], &, unicode) that
 # PowerShell mangles when handed straight to a native command as an argument.
 $NotesFile = Join-Path $BuildDir "release_notes.md"
-Set-Content -Path $NotesFile -Value $Notes -Encoding utf8
+# BOM-free UTF-8: Set-Content -Encoding utf8 (PS 5.1) prepends a BOM that shows
+# as a stray character at the top of the release notes / in-game update panel.
+[System.IO.File]::WriteAllText($NotesFile, $Notes, (New-Object System.Text.UTF8Encoding($false)))
 gh release create $Tag $ZipPath --title "Reincarnation Roguelike $Tag" --notes-file $NotesFile
 if ($LASTEXITCODE -ne 0) { Fail "gh release create failed." }
 
