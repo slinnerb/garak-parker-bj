@@ -94,9 +94,11 @@ if ((Get-Content $configPath -Raw) -match 'GITHUB_REPO\s*:=\s*""') {
 # --- 1. Bump version in project.godot -------------------------------------
 Info "Setting version to $Version in project.godot"
 $projPath = Join-Path $Root "project.godot"
-$proj = Get-Content $projPath -Raw
+# Read/write via .NET so UTF-8 stays intact: PowerShell 5.1's Get-Content/
+# Set-Content round-trip corrupts non-ASCII (em-dashes) and injects a BOM.
+$proj = [System.IO.File]::ReadAllText($projPath)
 $proj = [regex]::Replace($proj, 'config/version="[^"]*"', "config/version=`"$Version`"")
-Set-Content -Path $projPath -Value $proj -Encoding utf8 -NoNewline
+[System.IO.File]::WriteAllText($projPath, $proj, (New-Object System.Text.UTF8Encoding($false)))
 
 # --- 2. Export ------------------------------------------------------------
 Info "Exporting Windows Desktop build"
