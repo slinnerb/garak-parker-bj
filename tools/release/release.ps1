@@ -108,11 +108,14 @@ New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
 # that the artifact check would then happily zip and ship.
 if (Test-Path $ExePath) { Remove-Item $ExePath -Force }
 # Use Start-Process -Wait so we BLOCK until Godot fully exits (and the exe is
-# written). PowerShell's `&` call operator does not reliably wait for the export
+# written). PowerShell's `&` call operator did not reliably wait for the export
 # process here, which let the verify step run against a not-yet-written exe.
+# Pass args as ONE explicit string so the preset name "Windows Desktop" (with a
+# space) stays a single quoted argument — an -ArgumentList array splits it.
 # --import first so a clean checkout has its resources imported before export.
-Start-Process -FilePath $Godot -ArgumentList "--headless","--path",$Root,"--import" -Wait -NoNewWindow
-$exportProc = Start-Process -FilePath $Godot -ArgumentList "--headless","--path",$Root,"--export-release","Windows Desktop",$ExePath -Wait -PassThru -NoNewWindow
+Start-Process -FilePath $Godot -ArgumentList "--headless --path `"$Root`" --import" -Wait -NoNewWindow
+$exportArgs = "--headless --path `"$Root`" --export-release `"Windows Desktop`" `"$ExePath`""
+$exportProc = Start-Process -FilePath $Godot -ArgumentList $exportArgs -Wait -PassThru -NoNewWindow
 $exportExit = $exportProc.ExitCode
 if ($exportExit -ne 0) {
     Write-Host "NOTE: Godot export returned exit $exportExit; judging by the produced exe instead." -ForegroundColor DarkYellow
