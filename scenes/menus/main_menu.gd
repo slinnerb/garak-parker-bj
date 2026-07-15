@@ -13,14 +13,24 @@ extends Control
 @onready var _update_button: Button = %UpdateButton
 @onready var _settings_button: Button = %SettingsButton
 @onready var _quit_button: Button = %QuitButton
-@onready var _update_dialog: AcceptDialog = %UpdateDialog
 
-var _pending_download_url: String = ""
+var _updates_panel: UpdatesPanel
 
 
 func _ready() -> void:
 	_version_label.text = "v%s" % GameVersion.current()
 	_set_status("")
+
+	# The version number is a doorway to updates & version history.
+	_version_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	_version_label.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_version_label.tooltip_text = "Updates & version history"
+	_version_label.gui_input.connect(_on_version_label_input)
+
+	# The updates panel owns all update UI (check, install, history) and connects
+	# to the Updater itself, so an auto-check that finds an update auto-opens it.
+	_updates_panel = UpdatesPanel.new()
+	add_child(_updates_panel)
 
 	# Buttons that work today.
 	_update_button.pressed.connect(_on_update_pressed)
@@ -39,24 +49,22 @@ func _ready() -> void:
 	_settings_button.disabled = true
 	_settings_button.tooltip_text = "Settings screen coming soon."
 
-	# Update dialog: confirming opens the download page.
-	_update_dialog.ok_button_text = "Open Download Page"
-	_update_dialog.add_cancel_button("Later")
-	_update_dialog.confirmed.connect(_on_update_dialog_confirmed)
-
-	# Update service signals. These auto-disconnect when this menu is freed.
-	Updater.check_started.connect(_on_check_started)
-	Updater.update_available.connect(_on_update_available)
-	Updater.up_to_date.connect(_on_up_to_date)
-	Updater.check_failed.connect(_on_check_failed)
-
 	_update_button.grab_focus()
+
+	# Check once on launch. If a newer build exists the panel auto-opens with the
+	# changelog and an Update & Relaunch button; if not, nothing interrupts.
+	Updater.check_for_updates()
 
 
 # --- Buttons ---------------------------------------------------------------
 
 func _on_update_pressed() -> void:
-	Updater.check_for_updates()
+	_updates_panel.open_and_check()
+
+
+func _on_version_label_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_updates_panel.open()
 
 
 func _on_new_life_pressed() -> void:
@@ -65,43 +73,6 @@ func _on_new_life_pressed() -> void:
 
 func _on_continue_pressed() -> void:
 	_set_status("Resuming is not available until run scenes exist.")
-
-
-# --- Update flow -----------------------------------------------------------
-
-func _on_check_started() -> void:
-	_update_button.disabled = true
-	_set_status("Checking for updates…")
-
-
-func _on_update_available(info: Dictionary) -> void:
-	_update_button.disabled = false
-	_pending_download_url = str(info.get("url", ""))
-	var version := str(info.get("version", "?"))
-	var current := str(info.get("current", GameVersion.current()))
-	var notes := str(info.get("notes", "")).strip_edges()
-	if notes.is_empty():
-		notes = "A newer version is available."
-	_update_dialog.title = "Update available"
-	_update_dialog.dialog_text = "You're on v%s.\nVersion %s is available.\n\n%s" % [current, version, notes]
-	_update_dialog.popup_centered(Vector2i(520, 300))
-	_set_status("Update available: %s" % version)
-
-
-func _on_up_to_date(current_version: String) -> void:
-	_update_button.disabled = false
-	_set_status("You're on the latest version (v%s)." % current_version)
-
-
-func _on_check_failed(reason: String) -> void:
-	_update_button.disabled = false
-	_set_status(reason)
-
-
-func _on_update_dialog_confirmed() -> void:
-	if not _pending_download_url.is_empty():
-		Log.info(Log.Cat.UPDATE, "Opening download page: %s" % _pending_download_url)
-		OS.shell_open(_pending_download_url)
 
 
 # --- Helpers ---------------------------------------------------------------

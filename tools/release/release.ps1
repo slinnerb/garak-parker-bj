@@ -49,6 +49,33 @@ $ZipPath = Join-Path $BuildDir $ZipName
 function Fail($msg) { Write-Host "ERROR: $msg" -ForegroundColor Red; exit 1 }
 function Info($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 
+# Pulls the release notes for a version out of CHANGELOG.md so the changelog is
+# the single source of truth. Returns the text under "## [version]" (or
+# "## [Unreleased]" as a fallback) up to the next "## " header. Empty if absent.
+function Get-ChangelogNotes($Root, $Version) {
+    $path = Join-Path $Root "CHANGELOG.md"
+    if (-not (Test-Path $path)) { return "" }
+    $lines = Get-Content $path
+    $wanted = "## [$Version]"
+    $fallback = "## [Unreleased]"
+    foreach ($header in @($wanted, $fallback)) {
+        $start = -1
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i].StartsWith($header)) { $start = $i; break }
+        }
+        if ($start -ge 0) {
+            $body = @()
+            for ($j = $start + 1; $j -lt $lines.Count; $j++) {
+                if ($lines[$j].StartsWith("## ")) { break }
+                $body += $lines[$j]
+            }
+            $text = ($body -join "`n").Trim()
+            if ($text) { return $text }
+        }
+    }
+    return ""
+}
+
 # --- Preflight -------------------------------------------------------------
 if (-not (Test-Path $Godot)) {
     Fail "Godot not found at '$Godot'. Set -Godot or `$env:GODOT_BIN."
@@ -97,6 +124,7 @@ if ($DryRun) {
     exit 0
 }
 
+if (-not $Notes) { $Notes = Get-ChangelogNotes -Root $Root -Version $Version }
 if (-not $Notes) { $Notes = "Release $Tag" }
 Info "Creating GitHub release $Tag"
 gh release create $Tag $ZipPath --title "Reincarnation Roguelike $Tag" --notes $Notes

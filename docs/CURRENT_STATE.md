@@ -1,6 +1,6 @@
 # Current State
 
-_Last updated: 2026-07-14 — Phase 3b: combat is playable on screen._
+_Last updated: 2026-07-14 — Phase 4: your gear is your deck._
 
 ## What works today
 
@@ -30,8 +30,14 @@ _Last updated: 2026-07-14 — Phase 3b: combat is playable on screen._
   Japanese/Norse samples at fixed order 1/2/3), 2 difficulties, 12 map node
   types, coastal_drifter archetype, 2 tattoos, 3 memories, 3 adaptations —
   loaded by `ContentLoader` at boot.
-- **Main menu** with a working **Check for Updates** button and version label.
-  Gameplay buttons (New Life / Continue / Settings) still honestly disabled.
+- **Main menu** with a clickable **version number** → an Updates & Version
+  History panel: current build, Check for Updates, and the changelog parsed from
+  the bundled `CHANGELOG.md` (offline-capable). The game **auto-checks on
+  launch**; if a newer build exists it shows what changed and an **Update &
+  Relaunch** that downloads the build, self-replaces via a helper, and restarts
+  (`SelfUpdater`). Browser hand-off remains the fallback (editor/non-Windows/no
+  asset). The download→swap→relaunch path is implemented but can't be verified
+  until the first real build + release exists.
 - **Release pipeline** — `tools/release/release.ps1` bumps the version, exports
   Windows, zips, and publishes a GitHub release. Update system verified
   end-to-end against **github.com/slinnerb/garak-parker-bj**.
@@ -46,11 +52,20 @@ _Last updated: 2026-07-14 — Phase 3b: combat is playable on screen._
   max-uses conditions. Damage runs the full outgoing×incoming×resistance chain
   through block; victory/defeat latch (defeat wins ties). Not yet wired to a
   combat scene or to run/map flow.
+- **Items are the deck (Phase 4)**: `Inventory` holds what the body carries;
+  `Attunement` is the slot-limited loadout that *generates* the combat deck
+  (attune/remove rebuilds it; multi-slot items; cursed items resist removal;
+  consumables give one card per charge; passive relics collected). The
+  **attunement screen** (Main Menu → New Life) shows carried items and a live
+  deck preview that updates as you toggle; "Begin the Fight" hands the loadout
+  to combat via `CombatRequest`. Verified: a custom loadout reaches combat as
+  the real deck. Not yet: finding items in a run (needs the map), mid-combat
+  deck changes, and applying relic passive modifiers.
 - **Combat passed an adversarial review**: a multi-agent review confirmed 3 bugs
   (Fortified self-nullified via a hook/decay phase mismatch; defeat not latching
   on a start-of-turn damage-over-time; a "random" transform that wasn't). All
   fixed with regression tests. See [DECISIONS.md](DECISIONS.md).
-- **Tests — 79 unit tests, all green** (exit 0): SemVer, RNG determinism, save
+- **Tests — 102 unit tests, all green** (exit 0): SemVer, RNG determinism, save
   round-trip/backup/corruption/merge, version wiring, definition parsing +
   validation rules, registry cross-checks (incl. bidirectional card↔item link
   and surfaced load failures), full sample-content validation, and the combat
@@ -90,10 +105,9 @@ _Last updated: 2026-07-14 — Phase 3b: combat is playable on screen._
 
 ## Immediate next task
 
-**Phase 4: items → deck (inventory & attunement).** Replace the demo deck with
-a real one derived from carried/attuned items: inventory, attunement slots
-(6–8, some items multi-slot), and the deck rebuilding when items are equipped/
-removed. This is the spine of the game — equipment and deckbuilding as one
-system — and it's what makes the combat screen show a deck the player shaped.
-(The between-life hub and the seeded run map, Phase 5, then place combats in a
-run instead of the current direct-to-demo entry.)
+**Phase 5: the run map.** A seeded, branching node map (combat / elite / item
+search / event / rest / shrine / boss) that strings encounters into an actual
+life, replacing the current direct-to-demo entry. This is where the loadout
+stops being a fixed demo set and starts filling from items found along the way,
+and where the fixed opening universe (Lovecraftian Coast) gets a real shape.
+(Then Phase 6 — death & reincarnation — closes the core loop.)

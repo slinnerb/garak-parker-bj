@@ -22,7 +22,12 @@ stable.** Checkboxes reflect reality.
 - [x] Create public GitHub repo (slinnerb/garak-parker-bj); set `GITHUB_REPO`
 - [x] Push code
 - [x] Verify end-to-end: an older build detects a newer release (headless)
+- [x] Auto-update: check on launch, changelog-driven prompt, download + self-
+      replace + relaunch (`SelfUpdater`); `CHANGELOG.md` as the notes source;
+      clickable version → Updates & Version History panel
 - [ ] Install export templates; cut a first real `v0.1.0` release with a build
+      **(also validates the auto-update swap/relaunch, which is untested until
+      a real build + release exists)**
 - [ ] Settings screen (audio/video/accessibility) wired to `SaveManager`
 - [ ] Debug panel scaffold (dev-only)
 
@@ -51,9 +56,14 @@ stable.** Checkboxes reflect reality.
       Reachable from the main menu (demo fight until the run flow exists).
 
 ## Phase 4 — Item & deck integration
-- [ ] Inventory + attunement slots (6–8, multi-slot items)
-- [ ] **Deck derived from equipped items** (equip/remove/upgrade/break/consume)
-- [ ] Item-search encounter, item rewards
+- [x] Inventory + attunement slots (capacity from archetype; multi-slot items;
+      cursed items resist removal)
+- [x] **Deck derived from attuned items** (attune/remove rebuilds it;
+      consumables give one card per charge; passive relics collected)
+- [x] Attunement screen with a live deck preview; New Life → attune → fight
+- [ ] Item-search encounter, item rewards (needs the run map — Phase 5)
+- [ ] Break/consume/upgrade during a fight (deck rebuild mid-combat)
+- [ ] Apply passive modifiers in combat (relics collected, not yet applied)
 
 ## Phase 5 — Run structure
 - [ ] Seeded, validated branching map generator (logical data first)
