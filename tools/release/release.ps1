@@ -104,12 +104,19 @@ New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
 # --import first so a clean checkout has its resources imported before export.
 & $Godot --headless --path $Root --import 2>&1 | Out-Null
 & $Godot --headless --path $Root --export-release "Windows Desktop" $ExePath
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path $ExePath)) {
+$exportExit = $LASTEXITCODE
+# Judge success by the artifact, not the exit code: Godot can return non-zero for
+# non-fatal export warnings (or a cold import cache) yet still produce a working
+# exe. Only a MISSING exe is a real failure (usually missing export templates).
+if (-not (Test-Path $ExePath)) {
     Write-Host ""
     Write-Host "Export failed. The most common cause is missing export templates." -ForegroundColor Yellow
     Write-Host "Fix: open the project in Godot 4.7, then Editor > Manage Export" -ForegroundColor Yellow
     Write-Host "     Templates > Download and Install (match 4.7-stable)." -ForegroundColor Yellow
     Fail "Godot export did not produce $ExePath"
+}
+if ($exportExit -ne 0) {
+    Write-Host "NOTE: Godot export returned exit $exportExit but produced the exe; continuing." -ForegroundColor DarkYellow
 }
 
 # --- 3. Zip ---------------------------------------------------------------

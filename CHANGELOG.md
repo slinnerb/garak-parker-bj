@@ -10,6 +10,13 @@ this file to show "what's new" and past builds when you click the version number
 
 ## [Unreleased]
 
+Nothing yet — this is where the next build's changes will be listed.
+
+## [0.1.0] - 2026-07-15
+
+The first playable build: a vertical slice of the item → deck → combat loop on
+the Lovecraftian Coast, plus the full update system.
+
 ### Added
 - Turn-based combat you can play on screen: draw a hand, play cards, read each
   enemy's telegraphed intent, and win or lose.
