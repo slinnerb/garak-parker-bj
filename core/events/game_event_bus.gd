@@ -28,3 +28,6 @@ signal update_check_completed(status: String, info: Dictionary)
 ## Emitted when a save domain is written or loaded. Useful for debug/telemetry.
 signal save_written(domain: String)
 signal save_loaded(domain: String)
+
+## Emitted when a new run (life) begins. Carries the universe id.
+signal run_started(universe_id: String)
