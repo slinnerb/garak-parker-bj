@@ -18,6 +18,7 @@ var _item_grid: GridContainer
 var _slots_label: Label
 var _deck_list: VBoxContainer
 var _hint_label: Label
+var _begin_button: Button
 
 
 func _ready() -> void:
@@ -37,10 +38,16 @@ func _on_item_clicked(item_id: String) -> void:
 	var item := _inventory.get_item(item_id)
 	if item == null:
 		return
+	# Set a fresh hint on every click (success or failure) so a stale error can't
+	# linger after the state that caused it is resolved.
 	if _attunement.is_attuned(item_id):
-		if not _attunement.unattune(item_id):
+		if _attunement.unattune(item_id):
+			_flash("Removed the %s." % item.display_name)
+		else:
 			_flash("The %s will not come off." % item.display_name)
-	elif not _attunement.attune(item):
+	elif _attunement.attune(item):
+		_flash("Attuned the %s." % item.display_name)
+	else:
 		_flash("Not enough attunement slots for the %s (needs %d)." % [item.display_name, item.slot_cost])
 	_refresh()
 
@@ -58,9 +65,15 @@ func _on_begin_pressed() -> void:
 # ---------------------------------------------------------------------------
 
 func _refresh() -> void:
+	# Build the deck once and share it: the preview and the Begin gate must agree.
+	var deck := _attunement.build_deck(ContentRegistry)
 	_refresh_items()
-	_refresh_deck()
+	_refresh_deck(deck)
 	_slots_label.text = "Attunement  %d / %d slots" % [_attunement.used_slots(), _attunement.capacity]
+	# A fight with no cards is unwinnable — don't let it start. (Slot count isn't
+	# enough: a relic-only loadout uses slots but grants no cards.)
+	_begin_button.disabled = deck.is_empty()
+	_begin_button.tooltip_text = "" if not deck.is_empty() else "Attune at least one item that grants a card."
 
 
 func _refresh_items() -> void:
@@ -113,11 +126,13 @@ func _make_item_card(item: ItemDefinition) -> Control:
 	# A dim footer line telling the player what a click will do.
 	var action := ""
 	if attuned:
-		action = "click: unattune" if item.removable else "cursed — cannot remove"
+		action = "click: unattune" if _attunement.can_unattune(item.id) else "cursed — cannot remove"
 	elif can_add:
 		action = "click: attune"
-	else:
+	elif _attunement.free_slots() == 0:
 		action = "no free slots"
+	else:
+		action = "needs %d slots" % item.slot_cost
 	var action_label := UiKit.label(action, 10, UiKit.MUTED.darkened(0.05))
 	action_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	action_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
@@ -140,12 +155,11 @@ func _grants_text(item: ItemDefinition) -> String:
 	return prefix + ", ".join(names)
 
 
-func _refresh_deck() -> void:
+func _refresh_deck(deck: Array) -> void:
 	for child in _deck_list.get_children():
 		child.queue_free()
 		_deck_list.remove_child(child)
 	# Count duplicate cards so the preview reads "Harpoon Thrust ×2".
-	var deck := _attunement.build_deck(ContentRegistry)
 	var counts: Dictionary = {}
 	var order: Array[String] = []
 	for card in deck:
@@ -241,10 +255,10 @@ func _build_ui() -> void:
 	_hint_label = UiKit.label("Click an item to attune or remove it.", 13, UiKit.MUTED)
 	_hint_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_child(_hint_label)
-	var begin := Button.new()
-	begin.text = "Begin the Fight  ⟶"
-	begin.custom_minimum_size = Vector2(200, 46)
-	begin.focus_mode = Control.FOCUS_NONE
-	UiKit.style_button(begin, Color(0.16, 0.13, 0.08), UiKit.AMBER, true)
-	begin.pressed.connect(_on_begin_pressed)
-	footer.add_child(begin)
+	_begin_button = Button.new()
+	_begin_button.text = "Begin the Fight  ⟶"
+	_begin_button.custom_minimum_size = Vector2(200, 46)
+	_begin_button.focus_mode = Control.FOCUS_NONE
+	UiKit.style_button(_begin_button, Color(0.16, 0.13, 0.08), UiKit.AMBER, true)
+	_begin_button.pressed.connect(_on_begin_pressed)
+	footer.add_child(_begin_button)

@@ -71,6 +71,11 @@ func validate(registry) -> Array[String]:
 			problems.append(_ctx("consumable items require charges >= 1 (got %d)" % charges))
 	elif charges != -1 and charges < 1:
 		problems.append(_ctx("charges must be -1 (unlimited) or >= 1 (got %d)" % charges))
+	# A curse that lets go isn't a curse: cursed items must resist removal, so the
+	# two flags can't contradict (the attunement rules key on both, but bad data
+	# should fail loudly here rather than rely on that safety net).
+	if cursed and removable:
+		problems.append(_ctx("cursed items must set removable = false"))
 	_check_in_set(rarity, ContentDefinition.RARITIES, "rarity", problems)
 	_check_universe_availability(registry, universe_availability, problems)
 	return problems

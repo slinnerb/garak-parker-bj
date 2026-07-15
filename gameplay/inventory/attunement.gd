@@ -73,11 +73,12 @@ func attune(item: ItemDefinition) -> bool:
 	return true
 
 
-## Cursed items refuse to leave (removable == false). Everything else can be
-## unattuned freely.
+## Cursed items refuse to leave. Guards on both flags so a curse sticks even if
+## an item wrongly left `removable` at its default (content validation also flags
+## that mismatch, but the curse must hold regardless).
 func can_unattune(item_id: String) -> bool:
 	var item := _find(item_id)
-	return item != null and item.removable
+	return item != null and item.removable and not item.cursed
 
 
 ## Removes an attuned item unless it's cursed. Returns whether it was removed.

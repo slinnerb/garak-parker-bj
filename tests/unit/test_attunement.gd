@@ -94,6 +94,43 @@ func test_deck_rebuilds_when_loadout_changes() -> void:
 	att.unattune("fishermans_gaff")
 	assert_eq(att.build_deck(ContentRegistry).size(), 1, "removing an item drops its card from the deck")
 
+func test_cursed_item_must_be_non_removable() -> void:
+	# The curse-sticks rule is enforced two ways; content that contradicts it
+	# (cursed but removable) must fail validation rather than rely on the
+	# attunement safety net.
+	var bad := ItemDefinition.from_dict({
+		"id": "false_curse", "display_name": "False Curse", "category": "charm",
+		"granted_card_ids": ["harpoon_thrust"], "cursed": true, "removable": true,
+	})
+	assert_true(_has_problem(bad.validate(null), "removable = false"), "a cursed-but-removable item is invalid")
+
+func test_combat_demo_builds_deck_from_loadout() -> void:
+	# Covers the CombatDemo build path (deck derivation -> shuffle -> draw pile),
+	# which the pure-domain tests don't exercise. Asserts identity, not just size.
+	_load_content()
+	var combat := CombatDemo.build_from(ContentRegistry, RngStream.new(3),
+		"coastal_drifter", ["rusted_harpoon", "tincture_of_salt"], "brine_soaked_villager")
+	assert_ne(combat, null, "build_from produces a combat")
+	var ids: Array = []
+	for pile in [combat.player.hand, combat.player.draw_pile]:
+		for card in pile:
+			ids.append(card.id())
+	assert_eq(ids.size(), 3, "harpoon (1) + tincture (2 charges) = a 3-card deck")
+	assert_true(ids.has("harpoon_thrust"), "the weapon's card is present")
+	assert_eq(ids.count("swallow_tincture"), 2, "the 2-charge consumable contributes 2 copies")
+
+func test_combat_demo_default_is_deterministic() -> void:
+	_load_content()
+	var a := CombatDemo.build(ContentRegistry, RngStream.new(42))
+	var b := CombatDemo.build(ContentRegistry, RngStream.new(42))
+	assert_eq(_pile_ids(a.player.draw_pile), _pile_ids(b.player.draw_pile), "same seed -> same shuffled deck order")
+
+func _pile_ids(pile: Array) -> Array:
+	var ids: Array = []
+	for card in pile:
+		ids.append(card.id())
+	return ids
+
 # ---------------------------------------------------------------------------
 
 func _load_content() -> void:
@@ -108,3 +145,9 @@ func _deck_ids(deck: Array) -> Array:
 	for card in deck:
 		ids.append(card.id())
 	return ids
+
+func _has_problem(problems: Array[String], needle: String) -> bool:
+	for p in problems:
+		if p.contains(needle):
+			return true
+	return false
