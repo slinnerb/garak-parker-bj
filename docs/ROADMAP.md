@@ -27,8 +27,10 @@ stable.** Checkboxes reflect reality.
       clickable version → Updates & Version History panel
 - [x] Install export templates; cut the first real **`v0.1.0`** release with a
       build (public zip live; exe boots; updater verified against it)
-- [ ] Validate the auto-update swap/relaunch end to end (cut a `v0.1.1`, run the
-      shipped `v0.1.0` exe, watch it self-update) — the one untested step
+- [x] Validate the auto-update end to end — a shipped `v0.1.0` build self-updated
+      to `v0.1.2` (check → download → swap → relaunch); release pipeline hardened
+      against stale/wrong-version builds (delete-before-export, blocking export,
+      boot-and-verify-version guard)
 - [ ] Settings screen (audio/video/accessibility) wired to `SaveManager`
 - [ ] Debug panel scaffold (dev-only)
 

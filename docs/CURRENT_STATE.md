@@ -36,10 +36,10 @@ _Last updated: 2026-07-14 — Phase 4: your gear is your deck._
   launch**; if a newer build exists it shows what changed and an **Update &
   Relaunch** that downloads the build, self-replaces via a helper, and restarts
   (`SelfUpdater`). Browser hand-off remains the fallback (editor/non-Windows/no
-  asset). Verified against the real **v0.1.0** release: the launch check reports
-  up-to-date, and `extract_exe` unpacks the correct exe from the real release
-  zip. Only the final file-swap+relaunch is unverified (needs a packaged run
-  against a *newer* release).
+  asset). **Validated end to end**: a shipped **v0.1.0** build detected, downloaded,
+  self-replaced, and relaunched into **v0.1.2** on its own, then correctly reported
+  up-to-date. The version-history panel and changelog also render in the packaged
+  build.
 - **Shipped: v0.1.0 is a public, downloadable build.** Export templates are
   installed; `tools/release/release.ps1 -Version X.Y.Z` builds the self-contained
   Windows exe, zips it, and publishes a GitHub release with notes pulled from
@@ -100,9 +100,6 @@ _Last updated: 2026-07-14 — Phase 4: your gear is your deck._
   Phase 5; death/reincarnation is Phase 6.
 - **No turn animation**: enemy turns resolve instantly; the log shows the
   sequence. Stepped/animated resolution is a later polish pass.
-- **Self-update's final relaunch is unverified.** Check + download + extract are
-  proven against the real v0.1.0 release; the actual file-swap+relaunch needs a
-  packaged run against a *newer* release (cut a v0.1.1 to demonstrate it).
 - **Relic passive modifiers** are collected but not yet applied in combat.
 - **No settings screen, no debug panel** yet.
 - **Japanese/Norse universes** are unplayable samples by design (fixed order
