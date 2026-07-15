@@ -12,6 +12,13 @@ this file to show "what's new" and past builds when you click the version number
 
 Nothing yet — this is where the next build's changes will be listed.
 
+## [0.1.1] - 2026-07-15
+
+### Changed
+- A verification build to exercise the in-game auto-updater end to end
+  (check on launch → download → self-replace → relaunch). No gameplay changes —
+  if your v0.1.0 build updated itself to this one, the update system works.
+
 ## [0.1.0] - 2026-07-15
 
 The first playable build: a vertical slice of the item → deck → combat loop on
