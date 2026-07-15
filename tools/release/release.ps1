@@ -134,7 +134,11 @@ if ($DryRun) {
 if (-not $Notes) { $Notes = Get-ChangelogNotes -Root $Root -Version $Version }
 if (-not $Notes) { $Notes = "Release $Tag" }
 Info "Creating GitHub release $Tag"
-gh release create $Tag $ZipPath --title "Reincarnation Roguelike $Tag" --notes $Notes
+# Pass notes via a file: the changelog contains markdown ([], &, unicode) that
+# PowerShell mangles when handed straight to a native command as an argument.
+$NotesFile = Join-Path $BuildDir "release_notes.md"
+Set-Content -Path $NotesFile -Value $Notes -Encoding utf8
+gh release create $Tag $ZipPath --title "Reincarnation Roguelike $Tag" --notes-file $NotesFile
 if ($LASTEXITCODE -ne 0) { Fail "gh release create failed." }
 
 Info "Done. Players on older versions will now see an update."
