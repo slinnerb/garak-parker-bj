@@ -111,38 +111,39 @@ if (Test-Path $ExePath) { Remove-Item $ExePath -Force }
 & $Godot --headless --path $Root --import 2>&1 | Out-Null
 & $Godot --headless --path $Root --export-release "Windows Desktop" $ExePath
 $exportExit = $LASTEXITCODE
-# The exported exe can land on disk a moment AFTER Godot exits (a 100 MB write
-# plus real-time AV scanning lag behind the process). Wait for it — otherwise a
-# race lets the next steps zip a stale/half-written binary (this shipped 0.1.0
-# as "v0.1.1" once). Combined with the pre-export delete above, "exe present"
-# now truly means "this export produced it".
-$deadline = (Get-Date).AddSeconds(90)
-while (-not (Test-Path $ExePath) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 500 }
-# Judge success by the artifact, not the exit code: Godot can return non-zero for
-# non-fatal export warnings (or a cold import cache) yet still produce a working
-# exe. Only a MISSING exe is a real failure (usually missing export templates).
-if (-not (Test-Path $ExePath)) {
-    Write-Host ""
-    Write-Host "Export failed. The most common cause is missing export templates." -ForegroundColor Yellow
-    Write-Host "Fix: open the project in Godot 4.7, then Editor > Manage Export" -ForegroundColor Yellow
-    Write-Host "     Templates > Download and Install (match 4.7-stable)." -ForegroundColor Yellow
-    Fail "Godot export did not produce $ExePath"
-}
 if ($exportExit -ne 0) {
-    Write-Host "NOTE: Godot export returned exit $exportExit but produced the exe; continuing." -ForegroundColor DarkYellow
+    Write-Host "NOTE: Godot export returned exit $exportExit; judging by the produced exe instead." -ForegroundColor DarkYellow
 }
 
-# Verify the exported build actually reports the target version. A stale export
-# can bake in the previous version even when project.godot is correct, which
-# makes the auto-updater loop forever (it downloads a build that still looks old).
-Info "Verifying the built exe reports v$Version"
-$bootLog = & $ExePath --headless --quit-after 90 2>&1 | Out-String
-$m = [regex]::Match($bootLog, 'Logger online \(version ([0-9][^)]*)\)')
-$builtVersion = if ($m.Success) { $m.Groups[1].Value.Trim() } else { "<unknown>" }
+# The exported exe lands on disk a moment AFTER Godot exits (a 100 MB write plus
+# real-time AV scanning lag behind the process), so a naive check races it — this
+# once shipped 0.1.0 as "v0.1.1". Poll until the exe both EXISTS and BOOTS to the
+# target version. Booting is the real gate: it proves the file is finalized AND
+# is the build we intended. Retry (through any AV lock) for up to 4 minutes.
+Info "Waiting for the export to finalize and verifying it reports v$Version"
+$deadline = (Get-Date).AddSeconds(240)
+$builtVersion = "<none>"
+while ((Get-Date) -lt $deadline) {
+    if (Test-Path $ExePath) {
+        $bootLog = & $ExePath --headless --quit-after 90 2>&1 | Out-String
+        $m = [regex]::Match($bootLog, 'Logger online \(version ([0-9][^)]*)\)')
+        if ($m.Success) {
+            $builtVersion = $m.Groups[1].Value.Trim()
+            if ($builtVersion -eq $Version) { break }
+        }
+    }
+    Start-Sleep -Seconds 3
+}
+if (-not (Test-Path $ExePath)) {
+    Write-Host ""
+    Write-Host "Export produced no exe. The most common cause is missing export templates." -ForegroundColor Yellow
+    Write-Host "Fix: Godot 4.7 > Editor > Manage Export Templates > Download and Install (4.7-stable)." -ForegroundColor Yellow
+    Fail "Godot export did not produce $ExePath"
+}
 if ($builtVersion -ne $Version) {
     Fail "Exported build reports version '$builtVersion' but expected '$Version'. Aborting to avoid shipping a stale build. Re-run the release."
 }
-Info "Confirmed: the build reports v$Version"
+Info "Confirmed: the build exists and reports v$Version"
 
 # --- 3. Zip ---------------------------------------------------------------
 Info "Packaging $ZipName"

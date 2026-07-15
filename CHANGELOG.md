@@ -12,6 +12,16 @@ this file to show "what's new" and past builds when you click the version number
 
 Nothing yet — this is where the next build's changes will be listed.
 
+## [0.1.2] - 2026-07-15
+
+### Fixed
+- The auto-updater could get stuck offering the same update forever. The cause
+  was in packaging, not the updater: a release could ship the previous build's
+  binary under the new version tag. Releases now confirm the built game reports
+  the correct version before publishing.
+- Update notes no longer show garbled characters, and the in-game version
+  history now appears in the build instead of being blank.
+
 ## [0.1.1] - 2026-07-15
 
 ### Changed
