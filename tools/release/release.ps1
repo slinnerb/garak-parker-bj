@@ -55,7 +55,8 @@ function Info($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 function Get-ChangelogNotes($Root, $Version) {
     $path = Join-Path $Root "CHANGELOG.md"
     if (-not (Test-Path $path)) { return "" }
-    $lines = Get-Content $path
+    # UTF-8 so arrows/em-dashes in the notes don't turn into mojibake.
+    $lines = Get-Content $path -Encoding UTF8
     $wanted = "## [$Version]"
     $fallback = "## [Unreleased]"
     foreach ($header in @($wanted, $fallback)) {
@@ -103,10 +104,20 @@ $proj = [regex]::Replace($proj, 'config/version="[^"]*"', "config/version=`"$Ver
 # --- 2. Export ------------------------------------------------------------
 Info "Exporting Windows Desktop build"
 New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
+# Remove any prior exe so a failed/partial export can't leave a stale binary
+# that the artifact check would then happily zip and ship.
+if (Test-Path $ExePath) { Remove-Item $ExePath -Force }
 # --import first so a clean checkout has its resources imported before export.
 & $Godot --headless --path $Root --import 2>&1 | Out-Null
 & $Godot --headless --path $Root --export-release "Windows Desktop" $ExePath
 $exportExit = $LASTEXITCODE
+# The exported exe can land on disk a moment AFTER Godot exits (a 100 MB write
+# plus real-time AV scanning lag behind the process). Wait for it — otherwise a
+# race lets the next steps zip a stale/half-written binary (this shipped 0.1.0
+# as "v0.1.1" once). Combined with the pre-export delete above, "exe present"
+# now truly means "this export produced it".
+$deadline = (Get-Date).AddSeconds(90)
+while (-not (Test-Path $ExePath) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 500 }
 # Judge success by the artifact, not the exit code: Godot can return non-zero for
 # non-fatal export warnings (or a cold import cache) yet still produce a working
 # exe. Only a MISSING exe is a real failure (usually missing export templates).
@@ -120,6 +131,18 @@ if (-not (Test-Path $ExePath)) {
 if ($exportExit -ne 0) {
     Write-Host "NOTE: Godot export returned exit $exportExit but produced the exe; continuing." -ForegroundColor DarkYellow
 }
+
+# Verify the exported build actually reports the target version. A stale export
+# can bake in the previous version even when project.godot is correct, which
+# makes the auto-updater loop forever (it downloads a build that still looks old).
+Info "Verifying the built exe reports v$Version"
+$bootLog = & $ExePath --headless --quit-after 90 2>&1 | Out-String
+$m = [regex]::Match($bootLog, 'Logger online \(version ([0-9][^)]*)\)')
+$builtVersion = if ($m.Success) { $m.Groups[1].Value.Trim() } else { "<unknown>" }
+if ($builtVersion -ne $Version) {
+    Fail "Exported build reports version '$builtVersion' but expected '$Version'. Aborting to avoid shipping a stale build. Re-run the release."
+}
+Info "Confirmed: the build reports v$Version"
 
 # --- 3. Zip ---------------------------------------------------------------
 Info "Packaging $ZipName"
