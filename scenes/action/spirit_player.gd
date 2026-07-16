@@ -86,14 +86,18 @@ func heal(amount: float) -> void:
 	hp_changed.emit(hp, max_hp)
 
 
-## Rip Tide card — a longer i-frame lunge toward a point (usually the enemy).
+## Rip Tide card — an i-frame lunge that arrives AT the target: the dash length
+## is clamped to the actual distance (stopping a hair short) so it neither
+## whiffs at range nor overshoots point-blank. Capped at 1.5x a dodge.
 func dash_toward(point: Vector2) -> void:
 	if _dead:
 		return
 	var dir := point - position
-	_dodge_dir = dir.normalized() if dir.length() > 1.0 else _facing
+	var dist := dir.length()
+	_dodge_dir = dir.normalized() if dist > 1.0 else _facing
 	_facing = _dodge_dir
-	_dodge_t = DODGE_TIME * 1.5
+	var lunge := clampf(dist - 26.0, 40.0, DODGE_SPEED * DODGE_TIME * 1.5)
+	_dodge_t = lunge / DODGE_SPEED
 	_iframe = maxf(_iframe, IFRAME_TIME)
 	_dodge_cd = DODGE_COOLDOWN
 

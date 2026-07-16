@@ -24,6 +24,12 @@ var loot_table_id: String = ""
 var universe_availability: Array[String] = ["*"]
 var is_elite: bool = false
 var is_boss: bool = false
+## How this enemy fights in the real-time action combat (Action Arc):
+## "melee" (chase + telegraphed strike), "ranged" (keep distance, fire
+## dodgeable projectiles), or "swarm" (fast, fragile, quick weak lunges).
+var action_behavior: String = "melee"
+
+const ACTION_BEHAVIORS := ["melee", "ranged", "swarm"]
 
 
 func type_name() -> String:
@@ -46,6 +52,7 @@ static func from_dict(d: Dictionary) -> EnemyDefinition:
 	def.universe_availability = to_string_array(d.get("universe_availability", ["*"]))
 	def.is_elite = bool(d.get("is_elite", false))
 	def.is_boss = bool(d.get("is_boss", false))
+	def.action_behavior = str(d.get("action_behavior", "melee"))
 	return def
 
 
@@ -67,6 +74,7 @@ func validate(registry) -> Array[String]:
 			problems.append(_ctx("damage_taken_multipliers['%s'] must be a number > 0 (got '%s')" % [damage_type, multiplier]))
 	_validate_intents(registry, problems)
 	_check_in_set(behavior, BEHAVIORS, "behavior", problems)
+	_check_in_set(action_behavior, ACTION_BEHAVIORS, "action_behavior", problems)
 	_check_ref(registry, TYPE_LOOT_TABLE, loot_table_id, "loot_table_id", problems)
 	_check_universe_availability(registry, universe_availability, problems)
 	# Elite and boss pools are disjoint by design — universes list them in

@@ -154,7 +154,15 @@ engine* are replaced. Built in vertical slices so there's always a playable buil
 - [x] Reachable from the main menu's **Action Prototype (dev)** entry; verified via
       headless drive + screenshots
 - [ ] Tune feel (knockback, hit-stop, dodge/attack timings) — needs hands-on play
-- [ ] Enemy variety, obstacles/walls, spirit possession & ethereal abilities
+- [x] **Enemy variety**: one state machine, three data-driven behaviors via
+      `action_behavior` on EnemyDefinition — melee (fisherman, warden), swarm
+      (villager: fast/fragile quick lunges), ranged (choir & the Keeper: hold
+      distance, fire wails that slow under focus and pass through a dodge)
+- [x] **Adversarial review pass (A-C + juice)**: 11 confirmed findings → 5 root
+      causes, all fixed — stale burst timer, dead player knockback, Rip Tide
+      whiff/overshoot, stuck freeze HUD at fight end, live projectiles behind
+      the overlay
+- [ ] Obstacles/walls, spirit possession & ethereal abilities
 
 ## Phase B — Loadout as your hand  🚧 first slice built
 - [x] A **hand of cards you queue during the freeze** (keys 1-4) that **unleash in

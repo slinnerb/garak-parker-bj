@@ -19,6 +19,7 @@ static func data() -> Array[Dictionary]:
 			"description": "He still wears his church clothes. He has been in the water for a long time, and he walked out of it anyway.",
 			"tags": ["human", "drowned"],
 			"base_hp": 26,
+			"action_behavior": "swarm",
 			"hp_variance": 3,
 			"intents": [
 				{
@@ -54,6 +55,7 @@ static func data() -> Array[Dictionary]:
 			"description": "His catch has been good all season. Nobody asks what he uses for bait anymore.",
 			"tags": ["human", "cultist"],
 			"base_hp": 32,
+			"action_behavior": "melee",
 			"hp_variance": 4,
 			"intents": [
 				{
@@ -90,6 +92,7 @@ static func data() -> Array[Dictionary]:
 			"description": "Six kneeling shapes at the tideline, singing in perfect unison. There are five of them.",
 			"tags": ["cultist", "cosmic"],
 			"base_hp": 22,
+			"action_behavior": "ranged",
 			"hp_variance": 2,
 			"damage_taken_multipliers": {"fire": 1.5},
 			"intents": [
@@ -128,6 +131,7 @@ static func data() -> Array[Dictionary]:
 			"description": "It stands where the harbor master used to stand, wearing the harbor master's coat. The coat fits it badly, and the tide obeys it well.",
 			"tags": ["deep", "elite"],
 			"base_hp": 58,
+			"action_behavior": "melee",
 			"hp_variance": 5,
 			"damage_taken_multipliers": {"fire": 1.25, "frost": 0.75},
 			"intents": [
@@ -174,6 +178,7 @@ static func data() -> Array[Dictionary]:
 			"description": "The light has not gone out in forty years. The keeper has not come down in forty years. The town is grateful, and does not finish the thought.",
 			"tags": ["boss", "cosmic"],
 			"base_hp": 110,
+			"action_behavior": "ranged",
 			"hp_variance": 6,
 			"damage_taken_multipliers": {"cosmic": 0.5},
 			"intents": [

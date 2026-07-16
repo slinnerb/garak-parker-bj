@@ -14,6 +14,10 @@ var _damage := 12.0
 var _life := LIFETIME
 
 
+func _ready() -> void:
+	add_to_group("action_projectile")  # swept by the room when the fight ends
+
+
 ## Aim + power. Call before adding to the tree.
 func setup(dir: Vector2, damage: float) -> void:
 	_vel = dir.normalized() * SPEED

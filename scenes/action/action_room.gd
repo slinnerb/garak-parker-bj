@@ -23,7 +23,8 @@ const ARENA := Rect2(70, 110, 1140, 470)  # play bounds within the view
 const MAX_QUEUE := 6
 const CAST_GAP := 0.16       # real-time beat between queued cards on execute
 const LASH_RANGE := 96.0
-const RIPTIDE_RANGE := 260.0
+# Rip Tide only lands where the lunge can actually arrive (max lunge + reach).
+const RIPTIDE_RANGE := 210.0
 
 var focus := FocusMeter.new()
 var time_factor := 1.0                     # read by the enemy each physics frame
@@ -194,6 +195,9 @@ func _try_queue(index: int) -> void:
 
 
 func _execute_queue() -> void:
+	if _queue.is_empty():
+		return
+	_cast_timer = 0.0  # the first card of a burst fires the moment you release
 	for i in _queue:
 		_loadout.use(i)
 		_pending.append(_loadout.cards[i])
@@ -454,6 +458,8 @@ func _refresh_hud() -> void:
 # --- End state -------------------------------------------------------------
 
 func _on_enemy_died() -> void:
+	if _over:
+		return  # a trailing bolt after the fight is decided changes nothing
 	if _in_run and _run != null:
 		_run.resolve_combat(int(_player.hp))
 		if _run.is_victory():
@@ -469,6 +475,8 @@ func _on_enemy_died() -> void:
 
 
 func _on_player_died() -> void:
+	if _over:
+		return
 	if _in_run and _run != null:
 		_finish("The water closes over.\nAnd at the moment of death… the soul remembers.", UiKit.DANGER, [
 			{"label": "Remember  ⟶", "cb": func() -> void:
@@ -490,11 +498,20 @@ func _finish(title: String, color: Color, buttons: Array) -> void:
 		return
 	_over = true
 	time_factor = 1.0
+	# The freeze ends with the fight: clear focus/plan state so the HUD returns
+	# to idle (no stuck TIME SLOWS / vignette / queue badges over the overlay).
+	focus.active = false
+	_planning = false
+	_queue.clear()
+	_pending.clear()
 	_vignette.color.a = 0.0
 	if _player != null and is_instance_valid(_player):
 		_player.set_physics_process(false)
 	if _enemy != null and is_instance_valid(_enemy):
 		_enemy.set_physics_process(false)
+	# Sweep in-flight projectiles — nothing keeps fighting behind the overlay.
+	for p in get_tree().get_nodes_in_group("action_projectile"):
+		p.queue_free()
 	_overlay_title.text = title
 	_overlay_title.add_theme_color_override("font_color", color)
 	for child in _overlay_vbox.get_children():
