@@ -12,6 +12,29 @@ this file to show "what's new" and past builds when you click the version number
 
 Nothing yet — this is where the next build's changes will be listed.
 
+## [0.3.2] - 2026-07-16
+
+### Added
+- **Your loot is your hand.** The cards in a fight now come from the items you've
+  actually attuned this run — the starting kit gives Harpoon Thrust, Brace the
+  Hull, and Lantern Sweep, and items you pick up on the map add their cards to
+  your next fight (up to 6 cards, keys 1–6).
+- **Enemies fight differently now.** Brine-Soaked Villagers lurch at you — fast,
+  fragile, relentless. The Choir of the Shallows keeps its distance and sings
+  dodgeable wails at you: slow time and the wails slow too, and a well-timed
+  dodge passes right through them. The Lighthouse Keeper strikes from afar.
+  Melee brutes still telegraph and swing.
+
+### Fixed (from an adversarial review of the new combat)
+- Unleashed cards fire the instant you release FOCUS — later bursts had a
+  hidden delay on their first card.
+- Enemy strikes now knock you back, the way your hits stagger them.
+- Rip Tide lunges exactly to its target — no more whiffing at range or flying
+  straight past a point-blank enemy.
+- Ending a fight mid-freeze no longer leaves the TIME SLOWS banner, blue tint,
+  and queued-card badges stuck over the results screen.
+- Stray projectiles no longer keep fighting behind the victory/defeat overlay.
+
 ## [0.3.1] - 2026-07-16
 
 ### Changed
