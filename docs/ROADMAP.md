@@ -164,11 +164,15 @@ engine* are replaced. Built in vertical slices so there's always a playable buil
       (player shield that absorbs), riptide (lunge + hit) — plus player shield/dash
 - [x] Hand HUD: cards with key hints, cooldown shading, and queue-order badges;
       "PLAN — press 1-4… release to unleash" state. Verified via drive + shots
+- [x] **Loot → hand**: the run's Attunement builds the freeze cards (`ActionHand`,
+      pure + 5 tests) — damage→lash/bolt (weapon tag = melee), block→ward,
+      heal→heal, unmapped riders become bonus power; cooldown from energy cost;
+      up to 6 cards (keys 1-6); dev sandbox / empty attunement falls back to the
+      default hand. Verified: mid-run pickup adds Shield Wall to the next fight
 - [ ] Manual targeting in the freeze (currently auto-targets the enemy)
-- [ ] Source the hand from the run's **Attunement** (items→deck), not a fixed
-      default hand; ability slots from the archetype
-- [ ] Port the real `CardDefinition` effect kinds (status, block, repeat, etc.)
-      to real-time resolution, keeping the data-driven definitions
+- [ ] A loadout picker for >6 granted cards (currently first six, attunement order)
+- [ ] Port the remaining `CardDefinition` effect kinds (statuses, draws, repeats)
+      to true real-time resolution instead of the rider-bonus approximation
 
 ## Phase C — Rooms replace the combat node  🚧 first slice built
 - [x] Map combat/elite/boss nodes launch the **action room** (map_screen →

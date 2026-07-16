@@ -78,6 +78,14 @@ func add_shield(amount: float) -> void:
 	shield = minf(MAX_SHIELD, shield + amount)
 
 
+## Heal card — mends the spectral form.
+func heal(amount: float) -> void:
+	if _dead or amount <= 0.0:
+		return
+	hp = minf(max_hp, hp + amount)
+	hp_changed.emit(hp, max_hp)
+
+
 ## Rip Tide card — a longer i-frame lunge toward a point (usually the enemy).
 func dash_toward(point: Vector2) -> void:
 	if _dead:

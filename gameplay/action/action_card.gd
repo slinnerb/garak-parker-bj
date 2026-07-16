@@ -10,6 +10,7 @@ const BOLT := "bolt"        # ranged spirit projectile
 const LASH := "lash"        # instant melee damage in reach
 const WARD := "ward"        # self shield that absorbs incoming damage
 const RIPTIDE := "riptide"  # lunge to the enemy + damage on arrival
+const HEAL := "heal"        # mend the spectral form (restore HP)
 
 var id: String
 var display_name: String

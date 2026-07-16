@@ -14,12 +14,13 @@ const SpiritBolt := preload("res://scenes/action/spirit_bolt.gd")
 const ActionCardScript := preload("res://gameplay/action/action_card.gd")
 const CardLoadoutScript := preload("res://gameplay/action/card_loadout.gd")
 const RunCombatScript := preload("res://gameplay/combat/run_combat.gd")
+const ActionHandScript := preload("res://gameplay/action/action_hand.gd")
 const FloatingText := preload("res://scenes/action/floating_text.gd")
 
 const VIEW := Vector2(1280, 720)
 const ARENA := Rect2(70, 110, 1140, 470)  # play bounds within the view
 
-const MAX_QUEUE := 4
+const MAX_QUEUE := 6
 const CAST_GAP := 0.16       # real-time beat between queued cards on execute
 const LASH_RANGE := 96.0
 const RIPTIDE_RANGE := 260.0
@@ -60,11 +61,22 @@ var _overlay_vbox: VBoxContainer
 
 func _ready() -> void:
 	_ensure_input_actions()
-	_loadout = CardLoadoutScript.new(ActionCardScript.default_hand())
 	_resolve_run_context()
+	_loadout = CardLoadoutScript.new(_build_hand())
 	_build_background()
 	_spawn_actors()
 	_build_hud()
+
+
+## Loot → hand: in a run, the freeze cards come from what you've actually
+## attuned (items found on the map change how you fight). The dev sandbox — or a
+## run with nothing attuned — falls back to the default hand, never fighting bare.
+func _build_hand() -> Array:
+	if _in_run and _run != null:
+		var hand: Array = ActionHandScript.build_hand(ContentRegistry, _run.attunement)
+		if not hand.is_empty():
+			return hand
+	return ActionCardScript.default_hand()
 
 
 ## If launched from a run's combat/elite/boss node, pull the fight from the run:
@@ -199,6 +211,8 @@ func _resolve_card(card) -> void:
 				_enemy.take_damage(card.power, _player.position)
 		ActionCardScript.WARD:
 			_player.add_shield(card.power)
+		ActionCardScript.HEAL:
+			_player.heal(card.power)
 		ActionCardScript.RIPTIDE:
 			if _enemy != null and is_instance_valid(_enemy):
 				_player.dash_toward(_enemy.position)
@@ -297,7 +311,7 @@ func _build_hud() -> void:
 	_build_hand_hud(root)
 
 	var hint := _hud_label(
-		"WASD move    SPACE dodge    LMB/J bolt    RMB/K hold to FOCUS    1-4 queue cards, release to unleash",
+		"WASD move    SPACE dodge    LMB/J bolt    RMB/K hold to FOCUS    1-%d queue cards, release to unleash" % _loadout.size(),
 		Vector2(0, VIEW.y - 30), 13, UiKit.MUTED)
 	hint.size.x = VIEW.x
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -366,7 +380,7 @@ func _build_hand_hud(root: Control) -> void:
 		UiKit.ignore_mouse(panel)
 		_card_panels.append({"panel": panel, "shade": shade, "badge": badge, "h": ch})
 
-	_plan_hint = UiKit.label("◊ TIME SLOWS — press 1-4 to queue cards, release FOCUS to unleash ◊", 13, Color(0.72, 0.92, 1.0))
+	_plan_hint = UiKit.label("◊ TIME SLOWS — press 1-%d to queue cards, release FOCUS to unleash ◊" % _loadout.size(), 13, Color(0.72, 0.92, 1.0))
 	_plan_hint.position = Vector2(0, y - 26)
 	_plan_hint.size.x = VIEW.x
 	_plan_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -378,6 +392,8 @@ func _card_stat(card) -> String:
 	match card.kind:
 		ActionCardScript.WARD:
 			return "+%d shield" % int(card.power)
+		ActionCardScript.HEAL:
+			return "+%d HP" % int(card.power)
 		ActionCardScript.RIPTIDE:
 			return "%d dmg · dash in" % int(card.power)
 		ActionCardScript.LASH:
@@ -545,6 +561,8 @@ func _ensure_input_actions() -> void:
 	_bind("card_2", [KEY_2, KEY_KP_2])
 	_bind("card_3", [KEY_3, KEY_KP_3])
 	_bind("card_4", [KEY_4, KEY_KP_4])
+	_bind("card_5", [KEY_5, KEY_KP_5])
+	_bind("card_6", [KEY_6, KEY_KP_6])
 
 
 func _bind(action: String, keys: Array, mouse_buttons: Array = []) -> void:
