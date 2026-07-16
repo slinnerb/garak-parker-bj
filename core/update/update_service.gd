@@ -22,18 +22,28 @@ signal up_to_date(current_version: String)
 signal check_failed(reason: String)
 ## Install flow (auto-download + self-replace + relaunch).
 signal install_started()
+## Emitted while the build downloads. total_bytes is -1 when the server didn't
+## say (chunked) — show raw MB in that case, not a percentage.
+signal install_progress(downloaded_bytes: int, total_bytes: int)
 signal install_failed(reason: String)
 ## Install can't run here (e.g. in the editor, or no build attached).
 signal install_unavailable(reason: String)
 
 const REQUEST_TIMEOUT_SECONDS := 12.0
-const DOWNLOAD_TIMEOUT_SECONDS := 120.0
+## The build download gets NO hard timeout: a ~38 MB file on a slow connection
+## legitimately takes many minutes, and the old 120s cap killed healthy
+## downloads ("result 13, HTTP 0"). Instead, a stall watchdog fails the install
+## only when bytes stop flowing entirely.
+const DOWNLOAD_TIMEOUT_SECONDS := 0.0
+const DOWNLOAD_STALL_SECONDS := 60.0
 
 var _http: HTTPRequest
 var _download_http: HTTPRequest
 var _busy := false
 var _installing := false
 var _download_zip_path := ""
+var _last_downloaded := 0
+var _stall_time := 0.0
 
 
 func _ready() -> void:
@@ -177,6 +187,8 @@ func install_update(info: Dictionary) -> void:
 	_installing = true
 	_download_zip_path = _temp_zip_path()
 	_download_http.download_file = _download_zip_path
+	_last_downloaded = 0
+	_stall_time = 0.0
 	Log.info(Log.Cat.UPDATE, "Downloading update from %s" % url)
 	emit_signal("install_started")
 	var headers := PackedStringArray([
@@ -186,6 +198,25 @@ func install_update(info: Dictionary) -> void:
 	var err := _download_http.request(url, headers, HTTPClient.METHOD_GET)
 	if err != OK:
 		_install_failed("Could not start the download (error %d)." % err)
+
+
+## While a build is downloading, report progress every frame and watch for a
+## stall — a dead connection fails loudly instead of hanging (or being killed
+## by an arbitrary timeout while healthy).
+func _process(delta: float) -> void:
+	if not _installing:
+		return
+	var downloaded := _download_http.get_downloaded_bytes()
+	var total := _download_http.get_body_size()
+	if downloaded != _last_downloaded:
+		_last_downloaded = downloaded
+		_stall_time = 0.0
+		emit_signal("install_progress", downloaded, total)
+	else:
+		_stall_time += delta
+		if _stall_time > DOWNLOAD_STALL_SECONDS:
+			_download_http.cancel_request()
+			_install_failed("Download stalled — no data for %d seconds. Check your connection and try again." % int(DOWNLOAD_STALL_SECONDS))
 
 
 func _on_download_completed(result: int, response_code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:

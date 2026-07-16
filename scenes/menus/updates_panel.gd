@@ -19,6 +19,8 @@ var _update_box: PanelContainer
 var _update_title: Label
 var _update_notes: RichTextLabel
 var _update_button: Button
+var _progress_bar: ProgressBar
+var _progress_label: Label
 var _history_list: VBoxContainer
 var _current_info: Dictionary = {}
 
@@ -35,6 +37,7 @@ func _ready() -> void:
 	Updater.up_to_date.connect(_on_up_to_date)
 	Updater.check_failed.connect(_on_check_failed)
 	Updater.install_started.connect(_on_install_started)
+	Updater.install_progress.connect(_on_install_progress)
 	Updater.install_failed.connect(_on_install_failed)
 	Updater.install_unavailable.connect(_on_install_unavailable)
 
@@ -87,11 +90,30 @@ func _on_install_started() -> void:
 	_update_button.disabled = true
 	_update_button.text = "Downloading…"
 	_status_label.text = "Downloading the update — the game will relaunch when it's ready."
+	_progress_bar.visible = true
+	_progress_bar.max_value = 1.0
+	_progress_bar.value = 0.0
+	_progress_label.visible = true
+	_progress_label.text = "Contacting the server…"
+
+func _on_install_progress(downloaded_bytes: int, total_bytes: int) -> void:
+	var mb := downloaded_bytes / 1048576.0
+	if total_bytes > 0:
+		_progress_bar.max_value = float(total_bytes)
+		_progress_bar.value = float(downloaded_bytes)
+		_progress_label.text = "Downloading…  %.1f / %.1f MB" % [mb, total_bytes / 1048576.0]
+	else:
+		# Size unknown — cycle the bar each MB so motion is still visible.
+		_progress_bar.max_value = 1.0
+		_progress_bar.value = fmod(mb, 1.0)
+		_progress_label.text = "Downloading…  %.1f MB" % mb
 
 func _on_install_failed(reason: String) -> void:
 	_update_button.disabled = false
 	_update_button.text = "Update & Relaunch"
 	_status_label.text = "Update failed: %s" % reason
+	_progress_bar.visible = false
+	_progress_label.visible = false
 
 func _on_install_unavailable(reason: String) -> void:
 	# e.g. running in the editor — fall back to the download page.
@@ -239,6 +261,18 @@ func _build_ui() -> void:
 	UiKit.style_button(_update_button, Color(0.18, 0.14, 0.08), UiKit.AMBER, true)
 	_update_button.pressed.connect(_on_update_pressed)
 	ubox.add_child(_update_button)
+
+	# Download progress: proof of life while the ~38 MB build streams in.
+	_progress_bar = ProgressBar.new()
+	_progress_bar.custom_minimum_size = Vector2(0, 14)
+	_progress_bar.show_percentage = false
+	_progress_bar.visible = false
+	_progress_bar.add_theme_stylebox_override("background", UiKit.stylebox(Color(0.10, 0.09, 0.06), UiKit.BORDER, 1, 4))
+	_progress_bar.add_theme_stylebox_override("fill", UiKit.stylebox(UiKit.AMBER, UiKit.AMBER, 0, 4))
+	ubox.add_child(_progress_bar)
+	_progress_label = UiKit.label("", 12, UiKit.MUTED)
+	_progress_label.visible = false
+	ubox.add_child(_progress_label)
 
 	var rule := HSeparator.new()
 	root.add_child(rule)

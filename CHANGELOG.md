@@ -12,6 +12,19 @@ this file to show "what's new" and past builds when you click the version number
 
 Nothing yet — this is where the next build's changes will be listed.
 
+## [0.3.3] - 2026-07-16
+
+### Fixed
+- **Updates no longer time out.** The build download had a hard 2-minute limit —
+  on a slower connection it died with "Download failed (result 13, HTTP 0)" even
+  though nothing was wrong. Downloads now run without a time limit and only fail
+  if the data actually stops flowing for 60 seconds.
+
+### Added
+- **A download progress bar.** While an update downloads you now see a live bar
+  and a running MB counter ("Downloading… 13.0 / 38.0 MB") — so you always know
+  it's working, not frozen.
+
 ## [0.3.2] - 2026-07-16
 
 ### Added
