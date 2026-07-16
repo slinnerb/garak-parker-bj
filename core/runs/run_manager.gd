@@ -17,16 +17,47 @@ func has_run() -> bool:
 	return current != null and not current.is_over()
 
 
-## Begins a new life: seeds RNG, builds the body from the archetype (HP, slots,
-## starting items attuned), and generates the map. Returns the RunState.
-func start_run(content, run_seed: int, universe_id: String, archetype_id: String = DEFAULT_ARCHETYPE) -> RunState:
+## The full soul-aware entry point for a brand-new life: selects the next
+## universe (fixed order, then weighted), records the life on the profile, and
+## starts the run with the soul's adaptations. Falls back to the first playable
+## universe when the destined one has no content yet (the soul reaches for other
+## shores, but the coast pulls it back — see docs/DECISIONS.md).
+func begin_new_life(content) -> RunState:
+	var seed_value := RNG.fresh_seed()
+	var destined := Soul.select_next_universe(content, RngStream.new(seed_value))
+	var playable := _playable_or_fallback(content, destined)
+	Soul.begin_life(playable)
+	var run := start_run(content, seed_value, playable, DEFAULT_ARCHETYPE, Soul.adaptations())
+	run.destined_universe_id = destined
+	if destined != playable:
+		Log.info(Log.Cat.UNIVERSE, "Destined for %s, but it is not yet playable — the coast pulls the soul back" % destined)
+	return run
+
+
+func _playable_or_fallback(content, universe_id: String) -> String:
+	var def = content.get_def("universe", universe_id)
+	if def != null and def.playable:
+		return universe_id
+	for id in content.ids_of("universe"):
+		var candidate = content.get_def("universe", id)
+		if candidate != null and candidate.playable:
+			return str(id)
+	return universe_id  # nothing playable at all — content validation would have failed boot
+
+
+## Begins a new life mechanically: seeds RNG, builds the body from the archetype
+## (HP, slots, starting items attuned), and generates the map. Takes the soul's
+## adaptations as data so tests never touch the real profile. Returns the RunState.
+func start_run(content, run_seed: int, universe_id: String, archetype_id: String = DEFAULT_ARCHETYPE, adaptation_ids: Array = []) -> RunState:
 	RNG.set_master_seed(run_seed)
 
 	var archetype = content.get_def("body_archetype", archetype_id)
 	var run := RunState.new()
 	run.run_seed = run_seed
 	run.universe_id = universe_id
+	run.destined_universe_id = universe_id
 	run.archetype_id = archetype_id
+	run.adaptation_ids = adaptation_ids.duplicate()
 	run.max_hp = int(archetype.base_hp) if archetype != null else 60
 	run.hp = run.max_hp
 	run.base_energy = int(archetype.base_energy) if archetype != null else 3

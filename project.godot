@@ -23,6 +23,7 @@ ContentRegistry="*res://core/content/content_registry.gd"
 Updater="*res://core/update/update_service.gd"
 SceneFlow="*res://core/scene_flow/scene_flow_manager.gd"
 GameState="*res://core/state/game_state_manager.gd"
+Soul="*res://core/progression/soul_manager.gd"
 RunManager="*res://core/runs/run_manager.gd"
 GameBootstrap="*res://core/bootstrap/game_bootstrap.gd"
 

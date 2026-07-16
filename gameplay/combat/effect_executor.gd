@@ -73,6 +73,9 @@ static func _deal_damage(ctx: EffectContext, effect: CardEffectDefinition) -> vo
 			amount *= StatusEngine.incoming_damage_multiplier(ctx.content, target)
 			if target is EnemyState:
 				amount *= (target as EnemyState).damage_multiplier(damage_type)
+				# Soul adaptations sharpen the player's hand vs certain foes.
+				if ctx.source is PlayerState:
+					amount *= ctx.combat.adaptation_bonus_multiplier(target)
 			var final_amount := maxi(0, int(round(amount)))
 			var dealt: int = target.receive_damage(final_amount)
 			ctx.combat.log_event("%s hits %s for %d (%s)" % [ctx.source.display_name, target.display_name, dealt, damage_type])

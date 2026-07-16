@@ -48,6 +48,9 @@ func default_data(domain: String) -> Dictionary:
 				"tattoo_system_unlocked": false,
 				"tattoo_slots": 0,
 				"unlocked_universes": ["lovecraft_coast"],
+				# Universe ids in the order lives were lived (newest last). Drives
+				# the no-repeat / recent-visit rules in universe selection.
+				"universe_history": [],
 				"unlocked_items": [],
 				"adaptations": [],
 				"memories": [],

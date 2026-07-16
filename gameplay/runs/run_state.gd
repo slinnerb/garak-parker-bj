@@ -11,7 +11,13 @@ extends RefCounted
 
 var run_seed: int = 0
 var universe_id: String = ""
+## Where the soul was destined to go this life. Usually == universe_id; differs
+## when the destined universe isn't playable yet and the run falls back.
+var destined_universe_id: String = ""
 var archetype_id: String = ""
+## Adaptation ids the soul carries into this life (combat modifiers derive from
+## these). Copied from the profile at run start; the run never mutates them.
+var adaptation_ids: Array = []
 
 var max_hp: int = 60
 var hp: int = 60

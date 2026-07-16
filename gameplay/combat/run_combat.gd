@@ -40,7 +40,10 @@ static func build(content, run: RunState, rng: RngStream) -> CombatState:
 		player.add_to_draw_pile(card)
 
 	var enemy := EnemyState.from_definition(enemy_def, rng)
-	return CombatState.new(content, rng, player, [enemy])
+	var combat := CombatState.new(content, rng, player, [enemy])
+	# The soul's adaptations travel into every fight of this life.
+	combat.player_modifiers = SoulProgression.combat_modifiers(content, run.adaptation_ids)
+	return combat
 
 
 ## True if a node type is a fight this builder handles.

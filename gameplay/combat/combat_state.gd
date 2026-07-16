@@ -30,6 +30,12 @@ var enemies: Array = []          # Array[EnemyState]
 var turn_number: int = 0
 var phase: String = PHASE_NOT_STARTED
 var log: Array[String] = []
+## Soul adaptation modifiers (SoulProgression.combat_modifiers): multipliers on
+## damage taken from / dealt to enemies by tag. Empty = no adaptations.
+var player_modifiers: Dictionary = {}
+## The enemy whose blow ended the player, for the death report (null when death
+## had no single killer, e.g. a damage-over-time status).
+var killing_enemy: EnemyDefinition = null
 
 # Set by the exhaust_card "this" effect while a card is resolving; consumed when
 # the played card is routed out of the hand.
@@ -182,15 +188,42 @@ func _perform_intent(enemy: EnemyState) -> void:
 func _enemy_attack(enemy: EnemyState, amount: int, times: int) -> void:
 	var out_mult := StatusEngine.outgoing_damage_multiplier(content, enemy)
 	var in_mult := StatusEngine.incoming_damage_multiplier(content, player)
+	var soul_mult := adaptation_taken_multiplier(enemy)
 	for _hit in times:
 		if not player.is_alive():
 			return
-		var final_amount := maxi(0, int(round(amount * out_mult * in_mult)))
+		var final_amount := maxi(0, int(round(amount * out_mult * in_mult * soul_mult)))
 		var dealt := player.receive_damage(final_amount)
 		log_event("%s hits %s for %d" % [enemy.display_name, player.display_name, dealt])
+		if not player.is_alive() and killing_enemy == null:
+			killing_enemy = enemy.definition  # remember who ended this life
 		_check_outcome()
 		if is_over():
 			return
+
+
+## Damage-taken multiplier from soul adaptations vs this enemy's tags
+## (e.g. gills: x0.75 from anything tagged "drowned"). 1.0 with no adaptations.
+func adaptation_taken_multiplier(enemy: EnemyState) -> float:
+	var taken: Dictionary = player_modifiers.get("taken_vs_tags", {})
+	if taken.is_empty() or enemy.definition == null:
+		return 1.0
+	var mult := 1.0
+	for tag in enemy.definition.tags:
+		mult *= float(taken.get(tag, 1.0))
+	return mult
+
+
+## Damage-dealt multiplier from soul adaptations vs this enemy's tags
+## (e.g. the boss-scar: x1.10 against anything tagged "boss").
+func adaptation_bonus_multiplier(target: EnemyState) -> float:
+	var bonus: Dictionary = player_modifiers.get("bonus_vs_tags", {})
+	if bonus.is_empty() or target.definition == null:
+		return 1.0
+	var mult := 1.0
+	for tag in target.definition.tags:
+		mult *= float(bonus.get(tag, 1.0))
+	return mult
 
 
 # ---------------------------------------------------------------------------
