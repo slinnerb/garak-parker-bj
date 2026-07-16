@@ -38,12 +38,46 @@ func test_at_least_one_item_search() -> void:
 	# Even seeds that roll no item_search must get one injected.
 	for s in 20:
 		var map := MapGenerator.generate(RngStream.new(s))
-		var found := false
-		for node in map.all_nodes():
-			if node.node_type == "item_search":
-				found = true
-				break
-		assert_true(found, "seed %d has no item_search node" % s)
+		assert_true(_has_type(map, "item_search"), "seed %d has no item_search node" % s)
+
+func test_item_search_guaranteed_on_tiny_and_narrow_maps() -> void:
+	# Regression: the old guarantee only converted a middle *combat* node, so
+	# tiny/narrow maps with no convertible combat node shipped with zero item
+	# locations. The guarantee must now hold for every size and every seed.
+	var configs := [[3, 2, 2], [4, 2, 2], [4, 3, 3], [5, 2, 2], [3, 4, 6]]
+	for cfg in configs:
+		for s in 40:
+			var map := MapGenerator.generate(RngStream.new(s * 13 + 1), cfg[0], cfg[1], cfg[2])
+			assert_true(_has_type(map, "item_search"),
+				"rows=%d width=%d paths=%d seed=%d has no item_search" % [cfg[0], cfg[1], cfg[2], s])
+
+func test_settings_drive_size() -> void:
+	# floors/branches/lanes from map_gen_settings must actually shape the map,
+	# not be silently ignored in favour of the generator defaults.
+	var map := MapGenerator.generate_from_settings(RngStream.new(7), {"floors": 5, "lanes": 3, "branches": 3})
+	assert_eq(map.rows, 5, "floors should set the row count")
+	assert_eq(map.width, 3, "lanes should set the width")
+	var big := MapGenerator.generate_from_settings(RngStream.new(7), {"floors": 9})
+	assert_eq(big.rows, 9, "floors alone should still take effect")
+
+func test_settings_guarantee_requested_types() -> void:
+	# Every type in guaranteed_node_types must appear at least once.
+	var map := MapGenerator.generate_from_settings(RngStream.new(3), {
+		"floors": 7, "branches": 6, "guaranteed_node_types": ["item_search", "event", "elite"],
+	})
+	for t in ["item_search", "event", "elite"]:
+		assert_true(_has_type(map, t), "guaranteed type '%s' is missing from the map" % t)
+
+func test_settings_defaults_when_empty() -> void:
+	# An empty settings dict must still produce a valid map with an item location.
+	var map := MapGenerator.generate_from_settings(RngStream.new(11), {})
+	assert_true(map.validate().is_empty(), "empty settings should still yield a valid map")
+	assert_true(_has_type(map, "item_search"), "empty settings still guarantees an item location")
+
+func test_settings_deterministic() -> void:
+	var a := MapGenerator.generate_from_settings(RngStream.new(4242), {"floors": 7, "branches": 6})
+	var b := MapGenerator.generate_from_settings(RngStream.new(4242), {"floors": 7, "branches": 6})
+	assert_eq(_signature(a), _signature(b), "same seed + settings must produce an identical map")
 
 func test_boss_reachable_from_every_start() -> void:
 	var map := MapGenerator.generate(RngStream.new(7))
@@ -51,6 +85,12 @@ func test_boss_reachable_from_every_start() -> void:
 		assert_true(_reaches(map, start.id, map.boss_id), "boss unreachable from start %s" % start.id)
 
 # ---------------------------------------------------------------------------
+
+func _has_type(map: RunMap, node_type: String) -> bool:
+	for node in map.all_nodes():
+		if node.node_type == node_type:
+			return true
+	return false
 
 func _signature(map: RunMap) -> String:
 	var parts: Array[String] = []

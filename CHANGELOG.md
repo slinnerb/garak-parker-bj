@@ -12,6 +12,36 @@ this file to show "what's new" and past builds when you click the version number
 
 Nothing yet — this is where the next build's changes will be listed.
 
+## [0.2.0] - 2026-07-15
+
+The whole loop is playable now: live a life, die, remember, reincarnate stronger.
+This is the build the older versions were missing — "New Life" finally leads
+somewhere.
+
+### Added
+- **A full life, start to finish.** New Life drops you onto a branching map of
+  the Lovecraftian Coast — pick your path node to node toward the light at the
+  end. (This is the screen the old build couldn't reach — the grey one.)
+- **Fights are part of a run.** Your HP carries between battles, the enemy you
+  face depends on the node you stepped into, and the final node is a boss.
+- **Death is the point.** Fall in a run and you reach the **Moment of Recall**:
+  a report of how this life ended, the Remembrance your soul keeps, and a choice
+  of adaptation shaped by *how* you died. Choose what to carry, then
+  **Reincarnate** into a new life that is measurably stronger.
+- **The soul remembers between lives.** Death count, Remembrance, and the
+  universes you've lived persist on a permanent profile; the second death
+  awakens the Memory Tattoo system (arriving next).
+- **A living map:** rest, shrines, item-searches, treasure, merchants, and
+  events appear along the way, each doing something distinct when you arrive.
+
+### Changed
+- Each universe's own map settings (length, branchiness, guaranteed stops) now
+  actually shape its map instead of being ignored.
+
+### Fixed
+- Every run is guaranteed at least one place to find an item, on any map size —
+  an unlucky layout could previously leave you with none.
+
 ## [0.1.2] - 2026-07-15
 
 ### Fixed

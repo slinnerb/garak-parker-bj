@@ -76,7 +76,11 @@ func start_run(content, run_seed: int, universe_id: String, archetype_id: String
 				run.inventory.add(item)
 				run.attunement.attune(item)
 
-	run.map = MapGenerator.generate(RNG.stream(RNG.MAP))
+	# Let the universe's authored map settings (floors/branches/guaranteed types)
+	# drive generation; fall back to the generator defaults if none are declared.
+	var universe = content.get_def("universe", universe_id)
+	var map_settings: Dictionary = universe.map_gen_settings if universe != null and universe.map_gen_settings is Dictionary else {}
+	run.map = MapGenerator.generate_from_settings(RNG.stream(RNG.MAP), map_settings)
 	current = run
 	Log.info(Log.Cat.RUN, "Run started: universe=%s seed=%d (%d map nodes)" % [
 		universe_id, run_seed, run.map.all_nodes().size(),

@@ -51,9 +51,9 @@ static func data() -> Array[Dictionary]:
 			"tattoo_weights": {"drowned_eye": 1.5, "broken_blade": 1.0},
 			"awareness_modifier": 0.0,
 			"map_gen_settings": {
-				"floors": 8,
-				"branches": 2,
-				"guaranteed_node_types": ["item_search", "event", "rest", "elite", "boss"],
+				"floors": 7,
+				"branches": 6,
+				"guaranteed_node_types": ["item_search", "event", "elite"],
 			},
 			"fixed_order_position": 1,
 			"playable": true,
