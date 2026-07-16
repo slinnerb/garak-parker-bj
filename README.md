@@ -1,4 +1,4 @@
-# Reincarnation Roguelike
+# Reincarnation Roguelite
 
 A single-player **roguelite** about death and reincarnation. Each run is a whole life
 in a different mythological universe; you explore, collect physical items that

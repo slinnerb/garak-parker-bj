@@ -15,7 +15,7 @@ never risks the permanent profile, and settings are isolated from both.
 | `run`      | `user://saves/run.json`      | Current life only; wiped on death | Universe, seed, current map node, body stats, equipped items, deck, inventory, health, run currency, modifiers. `{}` means no active run. |
 
 On Windows the `user://` root resolves to:
-`%APPDATA%\Godot\app_userdata\Reincarnation Roguelike\saves\`.
+`%APPDATA%\Godot\app_userdata\Reincarnation Roguelite\saves\`.
 
 ## File format
 

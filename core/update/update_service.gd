@@ -72,7 +72,7 @@ func check_for_updates() -> void:
 	Log.info(Log.Cat.UPDATE, "Checking for updates: %s" % url)
 	var headers := PackedStringArray([
 		"Accept: application/vnd.github+json",
-		"User-Agent: ReincarnationRoguelike/%s" % GameVersion.current(),
+		"User-Agent: ReincarnationRoguelite/%s" % GameVersion.current(),
 		"X-GitHub-Api-Version: 2022-11-28",
 	])
 	var err := _http.request(url, headers, HTTPClient.METHOD_GET)
@@ -181,7 +181,7 @@ func install_update(info: Dictionary) -> void:
 	emit_signal("install_started")
 	var headers := PackedStringArray([
 		"Accept: application/octet-stream",
-		"User-Agent: ReincarnationRoguelike/%s" % GameVersion.current(),
+		"User-Agent: ReincarnationRoguelite/%s" % GameVersion.current(),
 	])
 	var err := _download_http.request(url, headers, HTTPClient.METHOD_GET)
 	if err != OK:

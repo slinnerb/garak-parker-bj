@@ -41,9 +41,9 @@ $ErrorActionPreference = "Stop"
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $Tag = "v$Version"
 $BuildDir = Join-Path $Root "build"
-$ExeName = "ReincarnationRoguelike.exe"
+$ExeName = "ReincarnationRoguelite.exe"
 $ExePath = Join-Path $BuildDir $ExeName
-$ZipName = "ReincarnationRoguelike-$Tag-windows.zip"
+$ZipName = "ReincarnationRoguelite-$Tag-windows.zip"
 $ZipPath = Join-Path $BuildDir $ZipName
 
 function Fail($msg) { Write-Host "ERROR: $msg" -ForegroundColor Red; exit 1 }

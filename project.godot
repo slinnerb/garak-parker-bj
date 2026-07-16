@@ -6,7 +6,7 @@ config_version=5
 
 [application]
 
-config/name="Reincarnation Roguelike"
+config/name="Reincarnation Roguelite"
 config/description="A single-player cosmic-horror action roguelite about death, reincarnation, and freeze-to-plan combat."
 config/version="0.3.0"
 run/main_scene="res://scenes/boot/boot.tscn"
@@ -36,7 +36,7 @@ window/stretch/aspect="expand"
 
 [dotnet]
 
-project/assembly_name="Reincarnation Roguelike"
+project/assembly_name="Reincarnation Roguelite"
 
 [rendering]
 

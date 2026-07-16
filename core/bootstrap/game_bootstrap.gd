@@ -18,7 +18,7 @@ func boot() -> bool:
 		return true
 	_booted = true
 	GameState.set_state(GameState.State.BOOT)
-	Log.info(Log.Cat.BOOT, "==== Reincarnation Roguelike %s ====" % GameVersion.current())
+	Log.info(Log.Cat.BOOT, "==== Reincarnation Roguelite %s ====" % GameVersion.current())
 
 	_load_and_apply_settings()
 	_warm_profile()
