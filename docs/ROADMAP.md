@@ -69,9 +69,14 @@ stable.** Checkboxes reflect reality.
 - [ ] Apply passive modifiers in combat (relics collected, not yet applied)
 
 ## Phase 5 — Run structure
-- [ ] Seeded, validated branching map generator (logical data first)
-- [ ] Node traversal + encounters + rewards
-- [ ] Rest / shrine, elite path, boss
+- [x] Seeded, validated branching map generator (logical data first;
+      `MapGenerator`/`RunMap` — reachable start-to-boss DAG, deterministic)
+- [x] Node traversal + encounters + rewards (`RunState`/`RunManager`: HP carries,
+      items found & attuned, combats built from the run via `RunCombat`)
+- [x] Rest / shrine, elite path, boss; the map screen is the run hub
+      (New Life → map → encounters → boss = run complete)
+- [ ] Item-search depth, merchant economy, richer events (currently light)
+- [ ] Save/resume an in-progress run
 - [ ] **Path-range upgrades** (fate-shaping in-run): soul unlocks that widen
       branch choices, reveal node types further ahead, and later offer a
       choice of starting region

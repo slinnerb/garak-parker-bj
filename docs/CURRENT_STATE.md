@@ -1,6 +1,6 @@
 # Current State
 
-_Last updated: 2026-07-14 — Phase 4: your gear is your deck._
+_Last updated: 2026-07-15 — Phase 5: the run map is the hub of a life._
 
 ## What works today
 
@@ -65,11 +65,21 @@ _Last updated: 2026-07-14 — Phase 4: your gear is your deck._
   to combat via `CombatRequest`. Verified: a custom loadout reaches combat as
   the real deck. Not yet: finding items in a run (needs the map), mid-combat
   deck changes, and applying relic passive modifiers.
+- **The run map is the hub of a life (Phase 5)**: **New Life → a seeded,
+  branching map** (`MapGenerator`/`RunMap` — a validated start-to-boss DAG,
+  reproducible from the run seed) → travel node to node toward the boss.
+  `RunState`/`RunManager` hold the life: HP carries between fights, items found
+  at nodes are attuned into the deck, and each fight is built from the run
+  (`RunCombat`: your deck, your HP, an enemy from the universe pool by node
+  type). Combat feeds its outcome back (surviving HP, or death); beating the
+  boss completes the run. Rest/shrine heal, item-search/treasure offer items,
+  events give a choice. (Non-combat nodes are intentionally light for now; runs
+  aren't saved/resumable yet.)
 - **Combat passed an adversarial review**: a multi-agent review confirmed 3 bugs
   (Fortified self-nullified via a hook/decay phase mismatch; defeat not latching
   on a start-of-turn damage-over-time; a "random" transform that wasn't). All
   fixed with regression tests. See [DECISIONS.md](DECISIONS.md).
-- **Tests — 102 unit tests, all green** (exit 0): SemVer, RNG determinism, save
+- **Tests — 116 unit tests, all green** (exit 0): SemVer, RNG determinism, save
   round-trip/backup/corruption/merge, version wiring, definition parsing +
   validation rules, registry cross-checks (incl. bidirectional card↔item link
   and surfaced load failures), full sample-content validation, and the combat
@@ -93,11 +103,11 @@ _Last updated: 2026-07-14 — Phase 4: your gear is your deck._
 
 ## Known limitations / not yet built
 
-- **No run structure yet.** Combat is playable (Main Menu → New Life → attune →
-  fight), and the deck is now derived from a real `Attunement`, but it isn't
-  strung into a *run*: there's no map, and the demo's carried items are a
-  stand-in for scavenging until the map hands out loot. Map generation is
-  Phase 5; death/reincarnation is Phase 6.
+- **No death/reincarnation loop yet.** A run ends at victory (boss down) or death
+  → back to the menu. The soul side — death report, Moment of Recall, adaptations,
+  reincarnating stronger — is Phase 6, the heart the game is named for.
+- **Non-combat encounters are light**, and an in-progress run can't be saved and
+  resumed yet.
 - **No turn animation**: enemy turns resolve instantly; the log shows the
   sequence. Stepped/animated resolution is a later polish pass.
 - **Relic passive modifiers** are collected but not yet applied in combat.
@@ -107,9 +117,9 @@ _Last updated: 2026-07-14 — Phase 4: your gear is your deck._
 
 ## Immediate next task
 
-**Phase 5: the run map.** A seeded, branching node map (combat / elite / item
-search / event / rest / shrine / boss) that strings encounters into an actual
-life, replacing the current direct-to-demo entry. This is where the loadout
-stops being a fixed demo set and starts filling from items found along the way,
-and where the fixed opening universe (Lovecraftian Coast) gets a real shape.
-(Then Phase 6 — death & reincarnation — closes the core loop.)
+**Phase 6: death & reincarnation** — the heart of the game. When a life ends,
+record the cause of death, present the Moment of Recall, let the player choose a
+permanent adaptation, persist that soul progression, clear the body, and begin a
+new stronger life (fixed order Lovecraft → Japanese → Norse, then weighted). The
+first two deaths also unlock the Memory Tattoo system (Phase 7). This closes the
+loop the game is named for: die, remember, return stronger.

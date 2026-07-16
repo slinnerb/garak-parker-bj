@@ -31,6 +31,36 @@ and parses it (`Changelog`) for the in-game version-history panel, so history
 works offline and the network is only used to find something *newer*. Clicking
 the version number opens that panel.
 
+## 2026-07-15 — Phase 5 run map
+
+### Logical map first, rendered second (master prompt §12)
+`MapGenerator` builds a `RunMap` (a graph of `MapNode`s with row/col but no pixel
+coordinates) using a paths algorithm: draw N routes from the entry row to a
+single boss, union the visited cells into nodes and the steps into edges. Because
+every path ends at the boss, the map is always a connected start-to-boss DAG.
+`RunMap.validate()` enforces the invariants (reachable from a start, can reach the
+boss, boss terminal, no dangling edges) and the generator tests assert them
+across many seeds. The map screen positions the logical nodes; generation never
+depends on the UI.
+
+### One seed drives the whole life
+`RunManager.start_run` calls `RNG.set_master_seed(run_seed)`; the map draws from
+`RNG.stream(MAP)`, and each encounter derives its own stream from
+`encounter_seed(node_id)` (run seed + node), so a given fight in a given run
+always plays out the same way — reproducible without one encounter's randomness
+perturbing another.
+
+### RunState is the "body"; RunManager is the service
+`RunState` holds everything lost at death — map position, HP, the carried
+`Inventory` and the `Attunement` that IS the deck. Traversal only moves forward
+to a connected next-row node. `RunManager` (autoload) owns the current run and is
+the home the Phase 4 `CombatRequest` static hand-off was standing in for: combat
+and the map read `RunManager.current`. `RunCombat` builds a fight from the run —
+deck from the attunement, HP carried in, enemy drawn from the universe pool by
+node type (normal/elite/boss) — and the combat outcome feeds back via
+`RunState.resolve_combat` (surviving HP, or death). The soul half (permanent
+progression on death) is deliberately absent until Phase 6.
+
 ## 2026-07-14 — Phase 4 items → deck
 
 ### Equipment IS the deck: Attunement generates the combat deck
