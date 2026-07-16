@@ -309,12 +309,12 @@ func _build_hud() -> void:
 func _build_hand_hud(root: Control) -> void:
 	_card_panels.clear()
 	var n: int = _loadout.size()
-	var cw := 158.0
-	var ch := 78.0
+	var cw := 178.0
+	var ch := 100.0
 	var gap := 12.0
 	var total := n * cw + (n - 1) * gap
 	var start_x := (VIEW.x - total) * 0.5
-	var y := VIEW.y - 132.0
+	var y := VIEW.y - 156.0
 
 	for i in n:
 		var card = _loadout.cards[i]
@@ -326,15 +326,32 @@ func _build_hand_hud(root: Control) -> void:
 		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(panel)
 
-		var key := UiKit.label(str(i + 1), 13, UiKit.MUTED)
-		key.position = Vector2(10, 5)
-		panel.add_child(key)
-		var nm := UiKit.label(card.display_name, 15, card.color.lerp(UiKit.INK, 0.35))
-		nm.position = Vector2(10, 26)
+		# A keycap so it's obvious which key fires this card.
+		var keycap := Panel.new()
+		keycap.position = Vector2(10, 9)
+		keycap.size = Vector2(30, 26)
+		keycap.add_theme_stylebox_override("panel", UiKit.stylebox(UiKit.PANEL_HI, card.color, 1, 5))
+		panel.add_child(keycap)
+		var keynum := UiKit.label(str(i + 1), 16, UiKit.INK)
+		keynum.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		keynum.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		keynum.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		keycap.add_child(keynum)
+
+		var nm := UiKit.label(card.display_name, 15, card.color.lerp(UiKit.INK, 0.3))
+		nm.position = Vector2(48, 12)
 		panel.add_child(nm)
-		var tag := UiKit.label(_card_tagline(card), 11, UiKit.MUTED)
-		tag.position = Vector2(10, 50)
-		panel.add_child(tag)
+
+		var desc := UiKit.label(card.description, 12, UiKit.INK.darkened(0.06))
+		desc.position = Vector2(12, 44)
+		desc.custom_minimum_size = Vector2(cw - 24, 0)
+		desc.size = Vector2(cw - 24, 34)
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		panel.add_child(desc)
+
+		var stat := UiKit.label(_card_stat(card), 11, card.color)
+		stat.position = Vector2(12, ch - 22)
+		panel.add_child(stat)
 
 		var shade := ColorRect.new()
 		shade.color = Color(0.03, 0.04, 0.05, 0.72)
@@ -343,13 +360,13 @@ func _build_hand_hud(root: Control) -> void:
 		panel.add_child(shade)
 
 		var badge := UiKit.label("", 17, UiKit.AMBER)
-		badge.position = Vector2(cw - 24, 4)
+		badge.position = Vector2(cw - 22, 6)
 		panel.add_child(badge)
 
 		UiKit.ignore_mouse(panel)
 		_card_panels.append({"panel": panel, "shade": shade, "badge": badge, "h": ch})
 
-	_plan_hint = UiKit.label("◊ PLAN — press 1-4 to queue, release FOCUS to unleash ◊", 13, Color(0.72, 0.92, 1.0))
+	_plan_hint = UiKit.label("◊ TIME SLOWS — press 1-4 to queue cards, release FOCUS to unleash ◊", 13, Color(0.72, 0.92, 1.0))
 	_plan_hint.position = Vector2(0, y - 26)
 	_plan_hint.size.x = VIEW.x
 	_plan_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -357,16 +374,16 @@ func _build_hand_hud(root: Control) -> void:
 	root.add_child(_plan_hint)
 
 
-func _card_tagline(card) -> String:
+func _card_stat(card) -> String:
 	match card.kind:
 		ActionCardScript.WARD:
-			return "%d shield" % int(card.power)
+			return "+%d shield" % int(card.power)
 		ActionCardScript.RIPTIDE:
-			return "lunge · %d" % int(card.power)
+			return "%d dmg · dash in" % int(card.power)
 		ActionCardScript.LASH:
-			return "%d melee" % int(card.power)
+			return "%d dmg · melee" % int(card.power)
 		_:
-			return "%d bolt" % int(card.power)
+			return "%d dmg · ranged" % int(card.power)
 
 
 func _build_overlay(layer: CanvasLayer) -> void:
