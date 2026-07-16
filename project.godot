@@ -8,7 +8,7 @@ config_version=5
 
 config/name="Reincarnation Roguelite"
 config/description="A single-player cosmic-horror action roguelite about death, reincarnation, and freeze-to-plan combat."
-config/version="0.3.1"
+config/version="0.3.2"
 run/main_scene="res://scenes/boot/boot.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
