@@ -82,7 +82,10 @@ if (-not (Test-Path $Godot)) {
     Fail "Godot not found at '$Godot'. Set -Godot or `$env:GODOT_BIN."
 }
 if (-not $DryRun) {
-    gh auth status 2>$null
+    # cmd-level redirection so gh's stderr never becomes a PowerShell 5.1
+    # NativeCommandError (which $ErrorActionPreference = "Stop" would promote
+    # to a terminating error even on success).
+    cmd /c "gh auth status >nul 2>&1"
     if ($LASTEXITCODE -ne 0) { Fail "gh CLI is not authenticated. Run: gh auth login" }
 }
 
