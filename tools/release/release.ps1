@@ -172,7 +172,7 @@ $NotesFile = Join-Path $BuildDir "release_notes.md"
 # BOM-free UTF-8: Set-Content -Encoding utf8 (PS 5.1) prepends a BOM that shows
 # as a stray character at the top of the release notes / in-game update panel.
 [System.IO.File]::WriteAllText($NotesFile, $Notes, (New-Object System.Text.UTF8Encoding($false)))
-gh release create $Tag $ZipPath --title "Reincarnation Roguelike $Tag" --notes-file $NotesFile
+gh release create $Tag $ZipPath --title "Reincarnation Roguelite $Tag" --notes-file $NotesFile
 if ($LASTEXITCODE -ne 0) { Fail "gh release create failed." }
 
 Info "Done. Players on older versions will now see an update."
