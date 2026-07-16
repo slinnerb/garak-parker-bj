@@ -132,23 +132,29 @@ stable.** Checkboxes reflect reality.
 
 ---
 
-# Action Combat Arc (the Hades pivot)
+# Action Combat Arc (the Hades × Slay-the-Spire pivot)
 
-Turns the proven turn-based scaffold into a real-time, top-down action game. The
-roguelite shell (items→deck, map, death/recall/reincarnation, universes) is
-reused as-is; only the combat *scene and engine* are replaced. Built in vertical
-slices so there's always a playable build.
+Turns the proven turn-based scaffold into a **real-time + freeze-to-plan hybrid**
+top-down action game: live movement/dodging, with a slow-time planning mode where
+you queue card plays from your loadout. The roguelite shell (items→deck, map,
+death/recall/reincarnation, universes) is reused as-is; only the combat *scene and
+engine* are replaced. Built in vertical slices so there's always a playable build.
 
-## Phase A — Action combat core (top-down)
-- [ ] Player controller: 8-directional movement, free light attack, dodge/dash
-      (i-frames), health/energy — top-down 2D in an arena room
+## Phase A — Action + freeze core (top-down)
+- [ ] Player controller: 8-directional movement, dodge/dash (i-frames), optional
+      light attack, health — top-down 2D in an arena room
+- [ ] **Freeze-to-plan**: a slow/stop-time mode gated by a **planning meter** that
+      refills over real time; enter → queue actions → release → execute → exposed
+      while it recharges (the core risk/reward)
 - [ ] One enemy with real-time telegraphed attacks + simple pursuit AI
 - [ ] Hit detection, knockback, damage numbers, death; win = room cleared
-- [ ] Reachable from a debug menu; feels good before anything else is wired
+- [ ] Reachable from a debug menu; the freeze loop must *feel good* before more
 
-## Phase B — Loadout as moveset
-- [ ] Attuned items → **equipped abilities** on cooldown/energy buttons
-      (reinterpret CardDefinition effects as real-time ability effects)
+## Phase B — Loadout as your hand
+- [ ] Attuned items → the **hand of cards you queue during the freeze**
+      (reinterpret CardDefinition effects as queued real-time abilities); cards go
+      on cooldown after use, no random draw
+- [ ] Targeting in freeze (enemies/positions); plays resolve in a burst on release
 - [ ] Ability slots from the archetype; the Attunement screen becomes the
       pre-fight loadout screen
 - [ ] Port the existing effect kinds (damage, block→shield, status, etc.) to

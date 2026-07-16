@@ -5,10 +5,11 @@
 A single-player **top-down action roguelike** about **death, reincarnation, and
 the memory a soul carries between lives** — *Hades*-style real-time combat with a
 deckbuilder's soul. Every run is an entire life in a different mythological
-universe. You fight in real time — dodging, repositioning, and unleashing
-abilities drawn from the gear your soul has equipped — and you survive as long as
-you can. Then you die, for real, and the next life begins a little stronger in
-ways the new body does not understand.
+universe. You fight in real time — dodging and repositioning — then
+**bend time to a crawl to plan the cards your soul has equipped**: part *Hades*
+reflex, part *Slay the Spire* tactics. You survive as long as you can. Then you
+die, for real, and the next life begins a little stronger in ways the new body
+does not understand.
 
 ## The core fantasy
 
@@ -27,8 +28,8 @@ The player should always feel the tension:
    seeds the next life.
 2. **Cards come from things, not from thin air.** Every ability originates from a
    physical item you found, equipped, remembered, or manifested this life. In
-   real-time combat, each equipped card is an **ability on a cooldown** — your
-   loadout *is* your moveset. Equipment, deckbuilding, and your combat kit are
+   combat, your attuned cards are the **plays you queue when you freeze time** —
+   your loadout *is* your hand. Equipment, deckbuilding, and your combat kit are
    three views of one system.
 3. **Two kinds of progress, strictly separated.** The *body* (items, deck, gold,
    map progress) is lost at death. The *soul* (adaptations, memories, tattoos,
@@ -41,17 +42,31 @@ The player should always feel the tension:
 
 ## How it plays — combat & controls
 
+Combat fuses **real-time action (Hades)** with **turn-based card tactics (Slay
+the Spire)** through a *freeze-to-plan* mechanic — you feel both at once.
+
 **Perspective.** Top-down 2D, Hades-style: an overhead view of arena rooms with
 free 8-directional movement. You dodge, kite, and reposition around enemies in
 real time. (Top-down 2D over isometric 3D is a deliberate, solo-sustainable
 choice that still delivers the Hades feel.)
 
-**Your moveset is your loadout.** You always have a **free light attack and a
-dodge/dash**. On top of that, the items you attune become your **equipped
-abilities** — each attuned card is bound to a button with a cooldown (and energy
-where appropriate). There is **no mid-fight card draw**: deckcraft happens in
-preparation (which items to carry, which to attune into limited slots), and the
-fight itself is pure execution. Your Attunement screen is the loadout screen.
+**Real-time layer.** You always have free **movement** and a **dodge/dash** with
+i-frames (and, by default, a light basic attack). Enemies move and telegraph
+their attacks in real time — spacing and timing keep you alive moment to moment.
+
+**Freeze-to-plan layer.** Press a button and **time slows to a crawl**. Your hand
+— the cards from your attuned loadout — fans out; you **queue one or more plays**
+(target enemies/positions), spending a **planning meter**. Release, and time
+snaps back as the queued abilities execute in a burst. The meter then **refills
+over real time**, so a big plan leaves you exposed until it recharges: the core
+risk/reward. Deckcraft happens in prep (which items to carry, which to attune);
+the *decisions* happen in the freeze; the *dodging* happens live. Cards are
+loadout-based (no random draw) and go on cooldown after use.
+
+**The horror hook.** The freeze is the character's mind cracking too far open —
+perceiving more than a mind should, time distending around the dread. That's
+*why* it's limited: stare too long into the abyss and you are defenceless in it.
+Your Attunement screen is the loadout screen.
 
 **Weapon / aspect archetypes.** Distinct starting kits — like Hades' weapons —
 change how you fight from the very first room: a different base attack, a
@@ -138,9 +153,9 @@ stronger, with Memory Tattoos unlocking on the second death.
 **Combat today is turn-based (Slay-the-Spire-style).** That engine was the
 scaffold that *proved every surrounding system* — the item→deck pipeline, the
 map, the death loop, the reincarnation math — cheaply and with full test
-coverage. The next major arc **replaces it with the real-time, top-down action
-combat described above**, reusing the entire roguelite shell unchanged. The
-turn-based build stays playable while the action combat is built.
+coverage. The next major arc **replaces it with the real-time + freeze-to-plan
+hybrid combat described above**, reusing the entire roguelite shell unchanged.
+The turn-based build stays playable while the action combat is built.
 
 See [CURRENT_STATE.md](CURRENT_STATE.md) and [ROADMAP.md](ROADMAP.md).
 
