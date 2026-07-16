@@ -1,7 +1,8 @@
 # Current State
 
-_Last updated: 2026-07-15 — Phase 6: the death loop closes. Live → die →
-remember → adapt → reincarnate stronger._
+_Last updated: 2026-07-15 — **v0.2.0 shipped**: the full loop (map → fights →
+death → recall → reincarnation) is now a public, auto-updating build. Live →
+die → remember → adapt → reincarnate stronger._
 
 ## What works today
 
@@ -41,11 +42,15 @@ remember → adapt → reincarnate stronger._
   self-replaced, and relaunched into **v0.1.2** on its own, then correctly reported
   up-to-date. The version-history panel and changelog also render in the packaged
   build.
-- **Shipped: v0.1.0 is a public, downloadable build.** Export templates are
-  installed; `tools/release/release.ps1 -Version X.Y.Z` builds the self-contained
-  Windows exe, zips it, and publishes a GitHub release with notes pulled from
-  `CHANGELOG.md`. **github.com/slinnerb/garak-parker-bj/releases/tag/v0.1.0** is
-  live (36 MB zip); the exe boots clean.
+- **Shipped: v0.2.0 is the public, downloadable build** — the first release with
+  the whole loop (map → in-run fights → death → Moment of Recall →
+  reincarnation). `tools/release/release.ps1 -Version X.Y.Z` builds the
+  self-contained Windows exe, verifies it reports the right version, zips it, and
+  publishes a GitHub release with notes pulled from `CHANGELOG.md`.
+  **github.com/slinnerb/garak-parker-bj/releases/tag/v0.2.0** is live (38 MB
+  zip); older builds auto-update into it. (Note: v0.1.x builds could reach the
+  main menu but "New Life" led to a not-yet-built screen — v0.2.0 is the first
+  build where a life is actually playable end to end.)
 - **Phase 3 combat engine (headless, domain-level)** — a full turn-based fight
   runs with no scene: `CombatState` orchestrates the loop (start → player
   draw/play/end → enemies act on telegraphed intents → repeat) over

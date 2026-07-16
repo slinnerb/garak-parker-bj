@@ -75,6 +75,9 @@ stable.** Checkboxes reflect reality.
       items found & attuned, combats built from the run via `RunCombat`)
 - [x] Rest / shrine, elite path, boss; the map screen is the run hub
       (New Life → map → encounters → boss = run complete)
+- [x] Adversarial review pass: robust item-location guarantee (holds on any map
+      size/seed) + universe `map_gen_settings` now drive generation
+      (floors/branches/guaranteed types), with regression tests. **Shipped v0.2.0.**
 - [ ] Item-search depth, merchant economy, richer events (currently light)
 - [ ] Save/resume an in-progress run
 - [ ] **Path-range upgrades** (fate-shaping in-run): soul unlocks that widen
