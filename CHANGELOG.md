@@ -12,6 +12,34 @@ this file to show "what's new" and past builds when you click the version number
 
 Nothing yet — this is where the next build's changes will be listed.
 
+## [0.3.0] - 2026-07-16
+
+The big pivot, playable for the first time: combat is now **real-time action with
+a freeze-to-plan twist** — *Hades* in the hands, *Slay the Spire* in the freeze.
+
+### Added
+- **Real-time, top-down combat.** You're a **specter** on the drowned coast: move
+  (WASD), dodge with invulnerability frames (Space), and fire spirit bolts at the
+  cursor (left mouse / J).
+- **Freeze to plan.** Hold **FOCUS** (right mouse / K) to slow time to a crawl,
+  **queue cards 1–4** from your hand, then **release to unleash** them in a burst
+  — Wailing Bolt, Spirit Lash, Drowned Ward (a shield), Rip Tide (a lunge). Cards
+  go on cooldown; the focus meter limits your planning window, and empties leave
+  you briefly exposed.
+- **It's the run's real combat now.** New Life → the branching map → step onto a
+  fight and you drop into a live arena against a foe from the world; your HP
+  carries between fights. Win and press onward, beat the boss to complete the run,
+  or fall and reach the Moment of Recall.
+- **Try it fast:** the **Action Prototype** button on the main menu drops you
+  straight into a fight to feel the controls.
+- **Impact:** floating damage numbers, knockback, hit-stop, and screen shake.
+
+### Note
+This is an **early preview** of the new direction — placeholder shapes for art,
+one enemy type, a fixed starting hand, and feel numbers (speeds, distances,
+timings) that still need tuning. That's exactly what to give feedback on. The
+turn-based build is superseded by this direction.
+
 ## [0.2.0] - 2026-07-15
 
 The whole loop is playable now: live a life, die, remember, reincarnate stronger.
