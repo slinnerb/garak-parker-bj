@@ -403,11 +403,11 @@ func _show_run_outcome() -> void:
 			RunManager.end_run()
 			SceneFlow.goto_main_menu(), true)
 	elif run.is_defeat():
-		_outcome_label.text = "The water closes over.\nThis life ends here — the soul drifts on."
+		_outcome_label.text = "The water closes over.\nAnd at the moment of death... the soul remembers."
 		_outcome_label.add_theme_color_override("font_color", DANGER)
-		_add_outcome_button("Let go", func() -> void:
-			RunManager.end_run()
-			SceneFlow.goto_main_menu(), true)
+		_add_outcome_button("Remember", func() -> void:
+			RunManager.report_death(_combat.killing_enemy)
+			SceneFlow.goto_recall(), true)
 	else:
 		_outcome_label.text = "The way is clear.\nYou press deeper into the coast."
 		_outcome_label.add_theme_color_override("font_color", GOOD_GREEN)

@@ -2,7 +2,7 @@ extends SceneTree
 ## Throwaway probe: how often does MapGenerator produce a map with ZERO
 ## item_search nodes (the _guarantee_item_search hole)?
 
-func _init() -> void:
+func _initialize() -> void:
 	var RngStreamC = load("res://core/rng/rng_stream.gd")
 	var MapGen = load("res://gameplay/map/map_generator.gd")
 

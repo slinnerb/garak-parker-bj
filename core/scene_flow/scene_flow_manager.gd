@@ -12,6 +12,7 @@ const BOOT := "res://scenes/boot/boot.tscn"
 const COMBAT := "res://scenes/combat/combat_scene.tscn"
 const ATTUNEMENT := "res://scenes/hub/attunement_scene.tscn"
 const MAP := "res://scenes/map/map_scene.tscn"
+const RECALL := "res://scenes/death/recall_scene.tscn"
 
 
 func goto_main_menu() -> void:
@@ -30,6 +31,12 @@ func goto_attunement() -> void:
 func goto_map() -> void:
 	GameState.set_state(GameState.State.RUN)
 	change_scene(MAP)
+
+
+## The Moment of Recall — the death sequence where the soul remembers.
+func goto_recall() -> void:
+	GameState.set_state(GameState.State.DEATH)
+	change_scene(RECALL)
 
 
 ## Enters combat. Combat is part of a life, so the coarse state is RUN. The fight

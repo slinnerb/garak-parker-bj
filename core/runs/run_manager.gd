@@ -10,6 +10,9 @@ extends Node
 const DEFAULT_ARCHETYPE := "coastal_drifter"
 
 var current: RunState = null
+## The report of the death that just ended a run, for the Moment of Recall.
+## Set by report_death(); cleared when the next life begins.
+var last_death_report: DeathReport = null
 
 
 ## True while a run is in progress (started and not yet ended in death/victory).
@@ -23,6 +26,7 @@ func has_run() -> bool:
 ## universe when the destined one has no content yet (the soul reaches for other
 ## shores, but the coast pulls it back — see docs/DECISIONS.md).
 func begin_new_life(content) -> RunState:
+	last_death_report = null  # the past life fades as the new one begins
 	var seed_value := RNG.fresh_seed()
 	var destined := Soul.select_next_universe(content, RngStream.new(seed_value))
 	var playable := _playable_or_fallback(content, destined)
@@ -81,8 +85,21 @@ func start_run(content, run_seed: int, universe_id: String, archetype_id: String
 	return run
 
 
+## Concludes a fatal run: builds the DeathReport (§7 steps 2-11) from the run
+## that just ended and the enemy that ended it (may be null), stashes it for the
+## Moment of Recall, and clears the body. The report is NOT yet applied to the
+## profile — the recall screen does that once the player has chosen.
+func report_death(killer: EnemyDefinition) -> DeathReport:
+	if current == null:
+		return null
+	last_death_report = DeathReport.build(current, killer, Soul.life_count())
+	Log.info(Log.Cat.DEATH, last_death_report.summary())
+	end_run()
+	return last_death_report
+
+
 ## Ends the current run (death or leaving). The permanent profile is untouched;
-## soul progression on death lands in Phase 6.
+## the death path goes through report_death + the Moment of Recall.
 func end_run() -> void:
 	current = null
 

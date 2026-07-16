@@ -9,7 +9,7 @@ func _derive_seed(master_seed: int, name: String) -> int:
 		h = h * 1099511628211
 	return h
 
-func _init() -> void:
+func _initialize() -> void:
 	var MG = load("res://gameplay/map/map_generator.gd")
 	var RS = load("res://core/rng/rng_stream.gd")
 
