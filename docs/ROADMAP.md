@@ -82,11 +82,19 @@ stable.** Checkboxes reflect reality.
       choice of starting region
 
 ## Phase 6 — Death & reincarnation
-- [ ] Death report (cause, universe, distance, items, choices, damage types)
-- [ ] Cause-of-death → adaptation eligibility (data-driven)
-- [ ] Moment of Recall + adaptation selection
-- [ ] Meta-progression persistence; clear body state; increment life
-- [ ] Fixed universe order (Lovecraft → Japanese → Norse), then seeded weighted
+- [x] Death report (killer → cause tags, universe, distance, elites, carried
+      items) + Remembrance calculation
+- [x] Cause-of-death → adaptation eligibility (data-driven trigger matching);
+      adaptations grant real combat modifiers next life
+- [x] Moment of Recall + adaptation selection (records once, atomically;
+      tattoo-unlock banner on the 2nd death; Reincarnate → next life)
+- [x] Meta-progression persistence (Soul autoload); clear body state; increment
+      life; universe history
+- [x] Fixed universe order (Lovecraft → Japanese → Norse), then seeded weighted
+      (no repeat, recency penalties, unlock gates, death-cause pull; falls back
+      to a playable universe until Japanese/Norse have content)
+- [ ] Tattoo unlock at the 2nd death opens the *system* — tattoo selection is
+      Phase 7
 - [ ] **Fate-shaping tiers** (see GAME_VISION): nudge weights → Remembrance
       reroll/veto at the Moment of Recall → outright universe choice (late
       unlock, limited-use so randomness stays the default)

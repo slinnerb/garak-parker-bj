@@ -31,6 +31,37 @@ and parses it (`Changelog`) for the in-game version-history panel, so history
 works offline and the network is only used to find something *newer*. Clicking
 the version number opens that panel.
 
+## 2026-07-15 — Phase 6 death & reincarnation
+
+### Soul rules are pure functions; the autoload only persists
+`SoulProgression` operates on the profile as a plain dictionary (apply_death,
+begin_life, eligible_adaptations, combat_modifiers), so every rule is unit-
+tested without touching the real save. The `Soul` autoload wraps them with
+`SaveManager.set_data("profile", ...)` — one atomic write per mutation (§7 step
+14). Same split as the rest of the codebase (testable core, thin service).
+
+### Adaptation triggers are AND-matched; eligibility excludes owned
+An adaptation is offered when EVERY populated trigger key matches the death
+report (enemy_tags + universe_ids means "died to that enemy family in that
+universe"), and never re-offered once owned. Killer tags become death-cause
+tags, with derived causes (drowned/deep → drowning, fire → burning) so flavor
+triggers like "death by drowning" work without a bespoke damage system.
+
+### Adaptations are options with real teeth, not stat inflation
+Adaptation effects map to per-enemy-tag damage multipliers
+(`SoulProgression.combat_modifiers` → `CombatState.player_modifiers`), applied
+inside the existing damage chain. A same-seed test proves the boss-scarred soul
+hits the boss harder. Damage-type-keyed resists (e.g. cosmic) are parsed but
+inert until enemy attacks carry damage types.
+
+### Reincarnation destination vs. playable reality
+`UniverseSelector` implements the full §3 rules (fixed order 1–3, weighted
+random with hard no-repeat, recency penalties, unlock gates that fail closed on
+unknown keys, death-cause pull). Until Japanese/Norse have content,
+`RunManager.begin_new_life` records the *destined* universe on the run but
+falls back to the first `playable` universe for the actual map — logged, and
+kept visible as `destined_universe_id` so the UI can narrate it later.
+
 ## 2026-07-15 — Phase 5 run map
 
 ### Logical map first, rendered second (master prompt §12)

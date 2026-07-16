@@ -1,6 +1,7 @@
 # Current State
 
-_Last updated: 2026-07-15 — Phase 5: the run map is the hub of a life._
+_Last updated: 2026-07-15 — Phase 6: the death loop closes. Live → die →
+remember → adapt → reincarnate stronger._
 
 ## What works today
 
@@ -65,6 +66,17 @@ _Last updated: 2026-07-15 — Phase 5: the run map is the hub of a life._
   to combat via `CombatRequest`. Verified: a custom loadout reaches combat as
   the real deck. Not yet: finding items in a run (needs the map), mid-combat
   deck changes, and applying relic passive modifiers.
+- **The death loop is playable (Phase 6)**: dying in a run leads to the
+  **Moment of Recall** — the death report (killer → cause tags, distance,
+  cargo), Remembrance earned, and a choice among the adaptations that death
+  made eligible (data-driven trigger matching). The choice is recorded on the
+  profile atomically (`Soul`), the second death unlocks the Memory Tattoo
+  system, and **Reincarnate** begins the next life: universe chosen by
+  `UniverseSelector` (fixed order 1–3, then seeded weighted with no-repeat/
+  recency/unlock/death-cause rules; falls back to a playable universe), life
+  count and history recorded, and the soul's adaptations ride into every fight
+  as real combat modifiers (e.g. the boss-scar makes you hit bosses harder —
+  proven by a same-seed test). The next life is measurably stronger.
 - **The run map is the hub of a life (Phase 5)**: **New Life → a seeded,
   branching map** (`MapGenerator`/`RunMap` — a validated start-to-boss DAG,
   reproducible from the run seed) → travel node to node toward the boss.
@@ -79,7 +91,7 @@ _Last updated: 2026-07-15 — Phase 5: the run map is the hub of a life._
   (Fortified self-nullified via a hook/decay phase mismatch; defeat not latching
   on a start-of-turn damage-over-time; a "random" transform that wasn't). All
   fixed with regression tests. See [DECISIONS.md](DECISIONS.md).
-- **Tests — 116 unit tests, all green** (exit 0): SemVer, RNG determinism, save
+- **Tests — 128 unit tests, all green** (exit 0): SemVer, RNG determinism, save
   round-trip/backup/corruption/merge, version wiring, definition parsing +
   validation rules, registry cross-checks (incl. bidirectional card↔item link
   and surfaced load failures), full sample-content validation, and the combat
@@ -103,11 +115,13 @@ _Last updated: 2026-07-15 — Phase 5: the run map is the hub of a life._
 
 ## Known limitations / not yet built
 
-- **No death/reincarnation loop yet.** A run ends at victory (boss down) or death
-  → back to the menu. The soul side — death report, Moment of Recall, adaptations,
-  reincarnating stronger — is Phase 6, the heart the game is named for.
+- **Memory Tattoos unlock but can't be chosen yet** (the system opens at the
+  2nd death; selection/effects/UI are Phase 7). Memories and the between-life
+  hub are also still ahead.
 - **Non-combat encounters are light**, and an in-progress run can't be saved and
-  resumed yet.
+  resumed yet. Winning a run returns to the menu (no run summary screen).
+- **Japanese/Norse are selectable by fate but not playable** — the run falls
+  back to the coast with a log note until they have content.
 - **No turn animation**: enemy turns resolve instantly; the log shows the
   sequence. Stepped/animated resolution is a later polish pass.
 - **Relic passive modifiers** are collected but not yet applied in combat.
@@ -117,9 +131,9 @@ _Last updated: 2026-07-15 — Phase 5: the run map is the hub of a life._
 
 ## Immediate next task
 
-**Phase 6: death & reincarnation** — the heart of the game. When a life ends,
-record the cause of death, present the Moment of Recall, let the player choose a
-permanent adaptation, persist that soul progression, clear the body, and begin a
-new stronger life (fixed order Lovecraft → Japanese → Norse, then weighted). The
-first two deaths also unlock the Memory Tattoo system (Phase 7). This closes the
-loop the game is named for: die, remember, return stronger.
+Two candidates, either order:
+- **Ship it (v0.2.0)** — the full loop (map → fights → death → recall →
+  reincarnation) is a huge release for playtesters; the pipeline is one command.
+- **Phase 7: Memory Tattoos** — the system already unlocks at the 2nd death;
+  build tattoo selection, persistence, effects, and the between-life UI so the
+  unlock pays off.
