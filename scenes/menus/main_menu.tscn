@@ -40,7 +40,7 @@ horizontal_alignment = 1
 [node name="SubtitleLabel" type="Label" parent="Center/Menu"]
 modulate = Color(0.68, 0.74, 0.82, 1)
 layout_mode = 2
-text = "a roguelike reincarnation deckbuilder"
+text = "a cosmic-horror action roguelite"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="Center/Menu"]

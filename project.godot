@@ -1,5 +1,5 @@
 ; Engine configuration file.
-; Roguelike Reincarnation Deckbuilder — foundation.
+; Roguelite Reincarnation Deckbuilder — foundation.
 ; See docs/ARCHITECTURE.md for the system overview.
 
 config_version=5
@@ -7,7 +7,7 @@ config_version=5
 [application]
 
 config/name="Reincarnation Roguelike"
-config/description="A single-player roguelike reincarnation deckbuilder. Foundation build."
+config/description="A single-player cosmic-horror action roguelite about death, reincarnation, and freeze-to-plan combat."
 config/version="0.3.0"
 run/main_scene="res://scenes/boot/boot.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")

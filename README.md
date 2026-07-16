@@ -1,6 +1,6 @@
 # Reincarnation Roguelike
 
-A single-player **roguelike reincarnation deckbuilder**. Each run is a whole life
+A single-player **roguelite** about death and reincarnation. Each run is a whole life
 in a different mythological universe; you explore, collect physical items that
 become your cards, fight, and eventually die. Death is the core mechanic — the
 soul carries adaptations, memories, and tattoos into the next life, while the

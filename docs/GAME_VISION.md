@@ -2,7 +2,7 @@
 
 ## Elevator pitch
 
-A single-player **top-down action roguelike** about **death, reincarnation, and
+A single-player **top-down action roguelite** about **death, reincarnation, and
 the memory a soul carries between lives** — *Hades*-style real-time combat with a
 deckbuilder's soul. Every run is an entire life in a different mythological
 universe. You fight in real time — dodging and repositioning — then
