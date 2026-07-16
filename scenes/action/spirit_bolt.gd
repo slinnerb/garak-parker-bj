@@ -28,7 +28,7 @@ func _physics_process(delta: float) -> void:
 		return
 	for e in get_tree().get_nodes_in_group("action_enemy"):
 		if is_instance_valid(e) and position.distance_to(e.position) <= RADIUS + e.hit_radius:
-			e.take_damage(_damage)
+			e.take_damage(_damage, position)
 			queue_free()
 			return
 

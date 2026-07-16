@@ -14,6 +14,7 @@ const SpiritBolt := preload("res://scenes/action/spirit_bolt.gd")
 const ActionCardScript := preload("res://gameplay/action/action_card.gd")
 const CardLoadoutScript := preload("res://gameplay/action/card_loadout.gd")
 const RunCombatScript := preload("res://gameplay/combat/run_combat.gd")
+const FloatingText := preload("res://scenes/action/floating_text.gd")
 
 const VIEW := Vector2(1280, 720)
 const ARENA := Rect2(70, 110, 1140, 470)  # play bounds within the view
@@ -25,6 +26,7 @@ const RIPTIDE_RANGE := 260.0
 
 var focus := FocusMeter.new()
 var time_factor := 1.0                     # read by the enemy each physics frame
+var _shake := 0.0                          # screen-shake magnitude, decays over time
 
 var _loadout = null                        # CardLoadout
 var _queue: Array = []                      # card indices queued this plan
@@ -137,8 +139,33 @@ func _unhandled_input(event: InputEvent) -> void:
 			_try_queue(i)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_refresh_hud()
+	# Screen shake: offset the world root (the HUD lives on a CanvasLayer, so it
+	# stays put). randf is fine at runtime — this isn't the deterministic sim.
+	if _shake > 0.5:
+		position = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake
+		_shake = maxf(0.0, _shake - 60.0 * delta)
+	elif position != Vector2.ZERO:
+		position = Vector2.ZERO
+
+
+# --- Damage juice ----------------------------------------------------------
+
+func _on_enemy_damaged(amount: float, at: Vector2) -> void:
+	_spawn_number(amount, at + Vector2(0, -26), Color(1.0, 0.86, 0.5))
+
+
+func _on_player_damaged(amount: float, at: Vector2) -> void:
+	_spawn_number(amount, at + Vector2(0, -26), Color(1.0, 0.5, 0.46))
+	_shake = maxf(_shake, clampf(amount * 0.55, 4.0, 14.0))
+
+
+func _spawn_number(amount: float, at: Vector2, color: Color) -> void:
+	var ft := FloatingText.new()
+	ft.position = at
+	ft.setup(str(int(round(amount))), color)
+	add_child(ft)
 
 
 func _draw() -> void:
@@ -169,14 +196,14 @@ func _resolve_card(card) -> void:
 			_fire_card_bolt(card)
 		ActionCardScript.LASH:
 			if _enemy != null and is_instance_valid(_enemy) and _player.position.distance_to(_enemy.position) <= LASH_RANGE:
-				_enemy.take_damage(card.power)
+				_enemy.take_damage(card.power, _player.position)
 		ActionCardScript.WARD:
 			_player.add_shield(card.power)
 		ActionCardScript.RIPTIDE:
 			if _enemy != null and is_instance_valid(_enemy):
 				_player.dash_toward(_enemy.position)
 				if _player.position.distance_to(_enemy.position) <= RIPTIDE_RANGE:
-					_enemy.take_damage(card.power)
+					_enemy.take_damage(card.power, _player.position)
 
 
 func _fire_card_bolt(card) -> void:
@@ -211,6 +238,8 @@ func _spawn_actors() -> void:
 
 	_player.died.connect(_on_player_died)
 	_enemy.died.connect(_on_enemy_died)
+	_player.damaged.connect(_on_player_damaged)
+	_enemy.damaged.connect(_on_enemy_damaged)
 
 
 func _build_background() -> void:

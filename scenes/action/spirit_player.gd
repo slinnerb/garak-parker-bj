@@ -6,8 +6,12 @@ extends Node2D
 
 signal died
 signal hp_changed(hp: float, max_hp: float)
+signal damaged(amount: float, at: Vector2)
 
 const SpiritBolt := preload("res://scenes/action/spirit_bolt.gd")
+
+const KNOCKBACK_FORCE := 210.0
+const KNOCKBACK_DECAY := 1200.0
 
 const SPEED := 250.0
 const DODGE_SPEED := 680.0
@@ -37,6 +41,7 @@ var _iframe := 0.0
 var _atk_cd := 0.0
 var _dodge_dir := Vector2.RIGHT
 var _facing := Vector2.RIGHT
+var _knockback := Vector2.ZERO
 var _dead := false
 
 
@@ -48,7 +53,7 @@ func is_dead() -> bool:
 	return _dead
 
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, from_pos: Vector2 = Vector2.INF) -> void:
 	if _dead or is_invulnerable():
 		return
 	if shield > 0.0:
@@ -59,6 +64,9 @@ func take_damage(amount: float) -> void:
 		return
 	hp = maxf(0.0, hp - amount)
 	_iframe = HIT_MERCY_IFRAME  # brief flicker so a single mistake isn't a chain-death
+	if from_pos.is_finite():
+		_knockback = (position - from_pos).normalized() * KNOCKBACK_FORCE
+	damaged.emit(amount, position)
 	hp_changed.emit(hp, max_hp)
 	if hp <= 0.0:
 		_dead = true
@@ -109,6 +117,9 @@ func _physics_process(delta: float) -> void:
 		_fire_bolt()
 		_atk_cd = ATTACK_COOLDOWN
 
+	if _knockback.length() > 1.0:
+		position += _knockback * delta
+		_knockback = _knockback.move_toward(Vector2.ZERO, KNOCKBACK_DECAY * delta)
 	if room != null:
 		position = room.clamp_to_arena(position)
 	queue_redraw()

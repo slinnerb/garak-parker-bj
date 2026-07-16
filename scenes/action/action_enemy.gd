@@ -6,8 +6,13 @@ extends Node2D
 
 signal died
 signal hp_changed(hp: float, max_hp: float)
+signal damaged(amount: float, at: Vector2)
 
 enum St { CHASE, WINDUP, STRIKE, RECOVER }
+
+const KNOCKBACK_FORCE := 260.0
+const KNOCKBACK_DECAY := 1100.0
+const HITSTOP := 0.05
 
 const SPEED := 98.0
 const ATTACK_RANGE := 46.0
@@ -45,17 +50,23 @@ func configure(def) -> void:
 var _state := St.CHASE
 var _t := 0.0
 var _flash := 0.0
+var _knockback := Vector2.ZERO
+var _hitstop := 0.0
 
 
 func _ready() -> void:
 	add_to_group("action_enemy")
 
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, from_pos: Vector2 = Vector2.INF) -> void:
 	if hp <= 0.0:
 		return
 	hp = maxf(0.0, hp - amount)
-	_flash = 0.10
+	_flash = 0.12
+	_hitstop = HITSTOP
+	if from_pos.is_finite():
+		_knockback = (position - from_pos).normalized() * KNOCKBACK_FORCE
+	damaged.emit(amount, position)
 	hp_changed.emit(hp, max_hp)
 	if hp <= 0.0:
 		died.emit()
@@ -64,6 +75,16 @@ func take_damage(amount: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	_flash = maxf(0.0, _flash - delta)  # visual, real-time
+	# Knockback decays in real time so hits feel snappy regardless of focus.
+	if _knockback.length() > 1.0:
+		position += _knockback * delta
+		_knockback = _knockback.move_toward(Vector2.ZERO, KNOCKBACK_DECAY * delta)
+	if _hitstop > 0.0:
+		_hitstop -= delta
+		if room != null:
+			position = room.clamp_to_arena(position)
+		queue_redraw()
+		return  # a brief hitch on impact — the AI pauses while the hit lands
 	if target == null or not is_instance_valid(target):
 		queue_redraw()
 		return

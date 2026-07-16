@@ -195,6 +195,10 @@ engine* are replaced. Built in vertical slices so there's always a playable buil
 - [ ] Story beats that advance across runs; Moment of Recall folds into the hub
 
 ## Phase G — Feel & content
-- [ ] Animation, hit-stop, screen-shake, audio; readable enemy telegraphs
+- [x] First juice pass: **floating damage numbers** (colour-coded), **knockback**,
+      **hit-stop** (enemy hitches on impact), **screen shake** on player hits — via
+      `damaged` signals on player/enemy. Readable enemy telegraphs already in
+- [ ] Audio, animation, dodge/dash trails, death VFX; tune the feel constants
+      (needs hands-on play)
 - [ ] Fill the Lovecraftian Coast with real enemies/abilities/boss patterns
 - [ ] Fate-shaping tiers (nudge → reroll/veto → choice); path-range upgrades
