@@ -11,6 +11,7 @@ const MAIN_MENU := "res://scenes/menus/main_menu.tscn"
 const BOOT := "res://scenes/boot/boot.tscn"
 const COMBAT := "res://scenes/combat/combat_scene.tscn"
 const ATTUNEMENT := "res://scenes/hub/attunement_scene.tscn"
+const MAP := "res://scenes/map/map_scene.tscn"
 
 
 func goto_main_menu() -> void:
@@ -25,9 +26,15 @@ func goto_attunement() -> void:
 	change_scene(ATTUNEMENT)
 
 
+## The run map — the hub of a life, where you choose the next encounter.
+func goto_map() -> void:
+	GameState.set_state(GameState.State.RUN)
+	change_scene(MAP)
+
+
 ## Enters combat. Combat is part of a life, so the coarse state is RUN. The fight
-## to build comes from CombatRequest (set by the attunement screen); launched
-## directly it falls back to the default demo.
+## to build comes from the active run (RunManager) if one is in progress, else
+## from CombatRequest (attunement screen), else the default demo.
 func goto_combat() -> void:
 	GameState.set_state(GameState.State.RUN)
 	change_scene(COMBAT)

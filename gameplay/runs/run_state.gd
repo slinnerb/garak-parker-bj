@@ -15,6 +15,7 @@ var archetype_id: String = ""
 
 var max_hp: int = 60
 var hp: int = 60
+var base_energy: int = 3
 var slot_capacity: int = 6
 
 var map: RunMap

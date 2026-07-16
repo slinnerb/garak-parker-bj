@@ -23,6 +23,7 @@ const HP_FILL := Color(0.55, 0.32, 0.30)
 const HP_BG := Color(0.16, 0.11, 0.11)
 const BLOCK := Color(0.55, 0.72, 0.82)
 const DANGER := Color(0.80, 0.40, 0.34)
+const GOOD_GREEN := Color(0.62, 0.78, 0.60)
 
 # Card accent by type.
 const CARD_COLORS := {
@@ -39,6 +40,9 @@ var _pending_card_index: int = -1   # a card awaiting a target click, or -1
 ## The fight to build (archetype/attuned items/enemy), from the attunement
 ## screen. Empty => the default demo. Kept so "Fight Again" reuses the loadout.
 var _request: Dictionary = {}
+## True when this fight is part of an active run (deck/HP/enemy come from the
+## RunState, and the outcome feeds back into the run rather than a demo replay).
+var _in_run: bool = false
 
 # Node references (built in _build_ui).
 var _title_label: Label
@@ -51,6 +55,7 @@ var _hint_label: Label
 var _end_turn_button: Button
 var _outcome_overlay: Control
 var _outcome_label: Label
+var _outcome_buttons: HBoxContainer
 
 
 func _ready() -> void:
@@ -68,23 +73,42 @@ func _ready() -> void:
 # ---------------------------------------------------------------------------
 
 func _start_new_fight() -> void:
-	_seed = RNG.fresh_seed()
-	var rng := RngStream.new(_seed)
-	if _request.is_empty():
-		_combat = CombatDemo.build(ContentRegistry, rng)
+	var run_node := _run_combat_node()
+	if run_node != null:
+		# A fight inside the current run: deck, HP and enemy come from the run,
+		# seeded so the same encounter always plays the same way.
+		_in_run = true
+		_seed = RunManager.encounter_seed(RunManager.current.current_node_id)
+		_combat = RunCombat.build(ContentRegistry, RunManager.current, RngStream.new(_seed))
 	else:
-		_combat = CombatDemo.build_from(ContentRegistry, rng,
-			str(_request.get("archetype_id", CombatDemo.DEMO_ARCHETYPE)),
-			_request.get("attuned_item_ids", CombatDemo.DEFAULT_ATTUNED),
-			str(_request.get("enemy_id", CombatDemo.DEMO_ENEMY)))
+		_in_run = false
+		_seed = RNG.fresh_seed()
+		var rng := RngStream.new(_seed)
+		if _request.is_empty():
+			_combat = CombatDemo.build(ContentRegistry, rng)
+		else:
+			_combat = CombatDemo.build_from(ContentRegistry, rng,
+				str(_request.get("archetype_id", CombatDemo.DEMO_ARCHETYPE)),
+				_request.get("attuned_item_ids", CombatDemo.DEFAULT_ATTUNED),
+				str(_request.get("enemy_id", CombatDemo.DEMO_ENEMY)))
 	_pending_card_index = -1
 	_outcome_overlay.visible = false
 	if _combat == null:
-		_hint_label.text = "Demo content missing — cannot start a fight."
+		_hint_label.text = "This fight could not be set up."
 		return
 	_combat.start_combat()
 	_seed_label.text = "seed %d" % _seed
 	_refresh_all()
+
+
+## The current run's node if it's a fight to render, else null.
+func _run_combat_node() -> MapNode:
+	if not RunManager.has_run():
+		return null
+	var node: MapNode = RunManager.current.current_node()
+	if node != null and RunCombat.is_combat_node(node.node_type):
+		return node
+	return null
 
 
 func _refresh_all() -> void:
@@ -346,13 +370,58 @@ func _refresh_hint() -> void:
 
 
 func _show_outcome() -> void:
+	if _outcome_overlay.visible:
+		return  # already resolved this fight
 	_outcome_overlay.visible = true
+	for child in _outcome_buttons.get_children():
+		child.queue_free()
+		_outcome_buttons.remove_child(child)
+
+	if _in_run:
+		_show_run_outcome()
+		return
+
+	# Standalone demo fight.
 	if _combat.is_victory():
 		_outcome_label.text = "The tide pulls back.\nYou survive — this time."
-		_outcome_label.add_theme_color_override("font_color", Color(0.62, 0.78, 0.60))
+		_outcome_label.add_theme_color_override("font_color", GOOD_GREEN)
 	else:
 		_outcome_label.text = "The water closes over.\nThis life ends here."
 		_outcome_label.add_theme_color_override("font_color", DANGER)
+	_add_outcome_button("Fight Again", _start_new_fight, true)
+	_add_outcome_button("Return to Menu", func() -> void: SceneFlow.goto_main_menu(), false)
+
+
+func _show_run_outcome() -> void:
+	var run := RunManager.current
+	# Carry the fight's result back into the run (surviving HP; 0 = death).
+	run.resolve_combat(_combat.player.hp)
+	if run.is_victory():
+		_outcome_label.text = "The lighthouse goes dark at last.\nThis life ends — but it ends victorious."
+		_outcome_label.add_theme_color_override("font_color", GOOD_GREEN)
+		_add_outcome_button("Complete the Run", func() -> void:
+			RunManager.end_run()
+			SceneFlow.goto_main_menu(), true)
+	elif run.is_defeat():
+		_outcome_label.text = "The water closes over.\nThis life ends here — the soul drifts on."
+		_outcome_label.add_theme_color_override("font_color", DANGER)
+		_add_outcome_button("Let go", func() -> void:
+			RunManager.end_run()
+			SceneFlow.goto_main_menu(), true)
+	else:
+		_outcome_label.text = "The way is clear.\nYou press deeper into the coast."
+		_outcome_label.add_theme_color_override("font_color", GOOD_GREEN)
+		_add_outcome_button("Onward  ⟶", func() -> void: SceneFlow.goto_map(), true)
+
+
+func _add_outcome_button(text: String, callback: Callable, emphasized: bool) -> void:
+	var btn := Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(170, 44)
+	btn.focus_mode = Control.FOCUS_NONE
+	_style_button(btn, Color(0.16, 0.13, 0.08) if emphasized else PANEL, AMBER if emphasized else BORDER, emphasized)
+	btn.pressed.connect(callback)
+	_outcome_buttons.add_child(btn)
 
 
 # ---------------------------------------------------------------------------
@@ -490,24 +559,11 @@ func _build_outcome_overlay() -> void:
 	_outcome_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_outcome_label)
 
-	var buttons := HBoxContainer.new()
-	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
-	buttons.add_theme_constant_override("separation", 12)
-	box.add_child(buttons)
-	var again := Button.new()
-	again.text = "Fight Again"
-	again.custom_minimum_size = Vector2(150, 42)
-	again.focus_mode = Control.FOCUS_NONE
-	_style_button(again, Color(0.16, 0.13, 0.08), AMBER, false)
-	again.pressed.connect(_start_new_fight)
-	buttons.add_child(again)
-	var menu := Button.new()
-	menu.text = "Return to Menu"
-	menu.custom_minimum_size = Vector2(160, 42)
-	menu.focus_mode = Control.FOCUS_NONE
-	_style_button(menu, PANEL, BORDER, false)
-	menu.pressed.connect(func() -> void: SceneFlow.goto_main_menu())
-	buttons.add_child(menu)
+	# Buttons are populated per-outcome (run vs demo) in _show_outcome.
+	_outcome_buttons = HBoxContainer.new()
+	_outcome_buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	_outcome_buttons.add_theme_constant_override("separation", 12)
+	box.add_child(_outcome_buttons)
 
 
 # ---------------------------------------------------------------------------

@@ -29,6 +29,7 @@ func start_run(content, run_seed: int, universe_id: String, archetype_id: String
 	run.archetype_id = archetype_id
 	run.max_hp = int(archetype.base_hp) if archetype != null else 60
 	run.hp = run.max_hp
+	run.base_energy = int(archetype.base_energy) if archetype != null else 3
 	run.slot_capacity = int(archetype.base_slots) if archetype != null else 6
 
 	run.inventory = Inventory.new()

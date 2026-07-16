@@ -68,7 +68,12 @@ func _on_version_label_input(event: InputEvent) -> void:
 
 
 func _on_new_life_pressed() -> void:
-	SceneFlow.goto_attunement()
+	if ContentRegistry.ids_of("card").is_empty():
+		ContentLoader.load_all(ContentRegistry)
+	# A new life: a fresh seed, the opening universe, the starting body. The run
+	# map becomes the hub from here.
+	RunManager.start_run(ContentRegistry, RNG.fresh_seed(), "lovecraft_coast", RunManager.DEFAULT_ARCHETYPE)
+	SceneFlow.goto_map()
 
 
 func _on_continue_pressed() -> void:
