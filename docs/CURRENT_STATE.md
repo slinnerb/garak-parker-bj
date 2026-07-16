@@ -141,9 +141,15 @@ action** (*Hades*-style) with the attuned loadout as your ability set. The whole
 roguelite shell is kept. See [GAME_VISION.md](GAME_VISION.md) and the **Action
 Combat Arc** in [ROADMAP.md](ROADMAP.md).
 
-- **Phase A — Action combat core**: a top-down player controller (move, light
-  attack, dodge/dash) vs one real-time enemy in an arena room, reachable from a
-  debug menu. Make it *feel good* before wiring loadouts, rooms, or boons.
+- **Phase A — Action + freeze core: first slice built** ✅ (not yet in a public
+  build). A top-down arena (**Action Prototype (dev)** on the main menu) with a
+  spectral player (move, dodge with i-frames, cursor-aimed spirit bolts), the
+  **freeze-to-plan** slow-time mechanic (pure, unit-tested `FocusMeter` — one
+  burst per press, exposed recharge window, world slows while the player stays
+  full-speed), and The Drowned One (telegraphed melee + pursuit, slowed by
+  focus). Win/lose overlay. Verified headless (drive + screenshots); 139 tests.
+- **Next on Phase A**: tune the feel hands-on (knockback, hit-stop, timings),
+  then Phase B (attuned loadout → the cards you queue during the freeze).
 - The turn-based v0.2.0 build stays the public playable version during the
   rebuild. (Phase 7 Memory Tattoos and richer non-combat nodes remain valuable
   and can slot in alongside the action arc.)

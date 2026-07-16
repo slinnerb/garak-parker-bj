@@ -42,6 +42,8 @@ func _ready() -> void:
 	_new_life_button.pressed.connect(_on_new_life_pressed)
 	_new_life_button.tooltip_text = "Choose a loadout, then fight on the Lovecraftian coast (full run flow comes later)."
 
+	_add_action_prototype_button()
+
 	_continue_button.disabled = not SaveManager.has_active_run()
 	_continue_button.tooltip_text = "No life in progress." if _continue_button.disabled else "Resume your current life."
 	_continue_button.pressed.connect(_on_continue_pressed)
@@ -65,6 +67,19 @@ func _on_update_pressed() -> void:
 func _on_version_label_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_updates_panel.open()
+
+
+## A dev doorway to the Action Combat Arc (Phase A) prototype — the real-time,
+## freeze-to-plan direction. Added in code so the menu scene stays untouched.
+func _add_action_prototype_button() -> void:
+	var proto := Button.new()
+	proto.text = "▶ Action Prototype (dev)"
+	proto.custom_minimum_size = Vector2(300, 40)
+	proto.tooltip_text = "Prototype of the real-time + freeze-to-plan combat. Move, dodge, slow time."
+	proto.pressed.connect(func() -> void: SceneFlow.goto_action())
+	var menu := _new_life_button.get_parent()
+	menu.add_child(proto)
+	menu.move_child(proto, _new_life_button.get_index() + 1)
 
 
 func _on_new_life_pressed() -> void:

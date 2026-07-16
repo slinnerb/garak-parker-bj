@@ -140,15 +140,21 @@ you queue card plays from your loadout. The roguelite shell (items→deck, map,
 death/recall/reincarnation, universes) is reused as-is; only the combat *scene and
 engine* are replaced. Built in vertical slices so there's always a playable build.
 
-## Phase A — Action + freeze core (top-down)
-- [ ] Player controller: 8-directional movement, dodge/dash (i-frames), optional
-      light attack, health — top-down 2D in an arena room
-- [ ] **Freeze-to-plan**: a slow/stop-time mode gated by a **planning meter** that
-      refills over real time; enter → queue actions → release → execute → exposed
-      while it recharges (the core risk/reward)
-- [ ] One enemy with real-time telegraphed attacks + simple pursuit AI
-- [ ] Hit detection, knockback, damage numbers, death; win = room cleared
-- [ ] Reachable from a debug menu; the freeze loop must *feel good* before more
+## Phase A — Action + freeze core (top-down)  🚧 first slice built
+- [x] Player controller: 8-directional movement, dodge/dash (i-frames + cooldown),
+      HP, cursor-aimed spirit-bolt attack — top-down 2D in an arena room
+- [x] **Freeze-to-plan**: a slow-time mode gated by a **planning meter** (pure,
+      unit-tested `FocusMeter`) that refills over real time; one burst per press
+      with an exposed recharge window (the core risk/reward). World slows, player
+      stays full-speed (bullet-time)
+- [x] One enemy (The Drowned One) with a telegraphed melee (wind-up → strike →
+      recover) + pursuit AI; its wind-up slows under focus, opening the dodge
+- [x] Distance-based hit detection, HP, death; win = enemy unmade / lose = dragged
+      back; win-lose overlay with Fight-again / Back
+- [x] Reachable from the main menu's **Action Prototype (dev)** entry; verified via
+      headless drive + screenshots
+- [ ] Tune feel (knockback, hit-stop, dodge/attack timings) — needs hands-on play
+- [ ] Enemy variety, obstacles/walls, spirit possession & ethereal abilities
 
 ## Phase B — Loadout as your hand
 - [ ] Attuned items → the **hand of cards you queue during the freeze**
