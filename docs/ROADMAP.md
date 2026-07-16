@@ -3,6 +3,13 @@
 Phased plan. **Do not begin mass content production until the vertical slice is
 stable.** Checkboxes reflect reality.
 
+> **Direction shift (post-v0.2.0):** combat is moving from turn-based
+> (Slay-the-Spire) to **real-time, top-down action** (*Hades*-style) where your
+> attuned loadout is your ability set. The turn-based engine proved every
+> surrounding system; the roguelite shell (items→deck, map, death→recall→
+> reincarnation, universes) is **kept unchanged**. See
+> [GAME_VISION.md](GAME_VISION.md) and the **Action Combat Arc** below.
+
 ## Phase 0 — Audit & documentation ✅
 - [x] Inspect machine + tooling (Godot 4.7, git, gh, dotnet, node found)
 - [x] Establish engine direction (Godot 4.7 GDScript, GL Compatibility)
@@ -122,3 +129,51 @@ stable.** Checkboxes reflect reality.
 - [ ] Expand automated tests to every core system in §20 of the master prompt
 - [ ] Content validation pass; bug fixing; perf + architecture review
 - [ ] Keep docs in sync with implementation
+
+---
+
+# Action Combat Arc (the Hades pivot)
+
+Turns the proven turn-based scaffold into a real-time, top-down action game. The
+roguelite shell (items→deck, map, death/recall/reincarnation, universes) is
+reused as-is; only the combat *scene and engine* are replaced. Built in vertical
+slices so there's always a playable build.
+
+## Phase A — Action combat core (top-down)
+- [ ] Player controller: 8-directional movement, free light attack, dodge/dash
+      (i-frames), health/energy — top-down 2D in an arena room
+- [ ] One enemy with real-time telegraphed attacks + simple pursuit AI
+- [ ] Hit detection, knockback, damage numbers, death; win = room cleared
+- [ ] Reachable from a debug menu; feels good before anything else is wired
+
+## Phase B — Loadout as moveset
+- [ ] Attuned items → **equipped abilities** on cooldown/energy buttons
+      (reinterpret CardDefinition effects as real-time ability effects)
+- [ ] Ability slots from the archetype; the Attunement screen becomes the
+      pre-fight loadout screen
+- [ ] Port the existing effect kinds (damage, block→shield, status, etc.) to
+      real-time resolution; keep the data-driven definitions
+
+## Phase C — Rooms replace the combat node
+- [ ] Map "combat/elite/boss" nodes launch action rooms (from the run + node)
+- [ ] HP carries between rooms; room clear → back to the map; boss room → win
+- [ ] Enemy sets drawn from the universe pool, as today
+
+## Phase D — Mid-run boons
+- [ ] Boon definitions (data-driven ability modifiers) + a between-room choice
+      of 1-of-N, delivered via shrine/event/merchant nodes
+- [ ] Boons stack and interact; run-defining builds emerge
+
+## Phase E — Weapon / aspect archetypes
+- [ ] 2-3 distinct starting kits (base attack + starting cards + rhythm),
+      unlockable as soul options
+
+## Phase F — The hub between lives
+- [ ] A between-lives hub scene; recurring NPC(s) that react to death count
+- [ ] **The Mirror:** spend Remembrance on a persistent upgrade tree
+- [ ] Story beats that advance across runs; Moment of Recall folds into the hub
+
+## Phase G — Feel & content
+- [ ] Animation, hit-stop, screen-shake, audio; readable enemy telegraphs
+- [ ] Fill the Lovecraftian Coast with real enemies/abilities/boss patterns
+- [ ] Fate-shaping tiers (nudge → reroll/veto → choice); path-range upgrades

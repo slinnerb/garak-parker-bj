@@ -136,9 +136,14 @@ die → remember → adapt → reincarnate stronger._
 
 ## Immediate next task
 
-Two candidates, either order:
-- **Ship it (v0.2.0)** — the full loop (map → fights → death → recall →
-  reincarnation) is a huge release for playtesters; the pipeline is one command.
-- **Phase 7: Memory Tattoos** — the system already unlocks at the 2nd death;
-  build tattoo selection, persistence, effects, and the between-life UI so the
-  unlock pays off.
+**Direction confirmed:** combat pivots from turn-based to **real-time, top-down
+action** (*Hades*-style) with the attuned loadout as your ability set. The whole
+roguelite shell is kept. See [GAME_VISION.md](GAME_VISION.md) and the **Action
+Combat Arc** in [ROADMAP.md](ROADMAP.md).
+
+- **Phase A — Action combat core**: a top-down player controller (move, light
+  attack, dodge/dash) vs one real-time enemy in an arena room, reachable from a
+  debug menu. Make it *feel good* before wiring loadouts, rooms, or boons.
+- The turn-based v0.2.0 build stays the public playable version during the
+  rebuild. (Phase 7 Memory Tattoos and richer non-combat nodes remain valuable
+  and can slot in alongside the action arc.)
