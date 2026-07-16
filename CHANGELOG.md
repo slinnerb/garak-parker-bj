@@ -12,6 +12,23 @@ this file to show "what's new" and past builds when you click the version number
 
 Nothing yet — this is where the next build's changes will be listed.
 
+## [0.3.1] - 2026-07-16
+
+### Changed
+- **Renamed to _Reincarnation Roguelite_.** With the soul's progression carrying
+  between lives, it's a roguelite — so the title now says so. Because the name
+  changed, this build starts a **fresh save / soul profile**.
+
+### Improved
+- **Readable cards.** Each card in your hand now shows its **key (1–4)**, a plain
+  description of what it does ("Fire a bolt at the enemy", "Cloak yourself in a
+  shield"), and a stat line — instead of the cryptic "18 bolt".
+
+### How the cards work (in case it wasn't clear)
+Hold **FOCUS** (right mouse / K) to slow time, press **1–4** to queue cards from
+your hand, then **release** to unleash them in a burst. Left mouse / J is your
+free spirit bolt you can fire anytime.
+
 ## [0.3.0] - 2026-07-16
 
 The big pivot, playable for the first time: combat is now **real-time action with
