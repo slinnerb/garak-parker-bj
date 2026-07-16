@@ -19,12 +19,16 @@ const ATTACK_COOLDOWN := 0.26
 const BOLT_DAMAGE := 12.0
 const RADIUS := 13.0
 
+const MAX_SHIELD := 60.0
+
 const CORE := Color(0.80, 0.96, 1.0)
 const AURA := Color(0.45, 0.80, 0.95, 0.28)
 const TAIL := Color(0.60, 0.90, 1.0, 0.40)
+const SHIELD_COL := Color(0.55, 0.85, 0.80, 0.85)
 
 var max_hp := 100.0
 var hp := 100.0
+var shield := 0.0
 var room = null
 
 var _dodge_t := 0.0
@@ -47,12 +51,35 @@ func is_dead() -> bool:
 func take_damage(amount: float) -> void:
 	if _dead or is_invulnerable():
 		return
+	if shield > 0.0:
+		var absorbed := minf(shield, amount)
+		shield -= absorbed
+		amount -= absorbed
+	if amount <= 0.0:
+		return
 	hp = maxf(0.0, hp - amount)
 	_iframe = HIT_MERCY_IFRAME  # brief flicker so a single mistake isn't a chain-death
 	hp_changed.emit(hp, max_hp)
 	if hp <= 0.0:
 		_dead = true
 		died.emit()
+
+
+## Ward card — a shell that soaks incoming damage before HP.
+func add_shield(amount: float) -> void:
+	shield = minf(MAX_SHIELD, shield + amount)
+
+
+## Rip Tide card — a longer i-frame lunge toward a point (usually the enemy).
+func dash_toward(point: Vector2) -> void:
+	if _dead:
+		return
+	var dir := point - position
+	_dodge_dir = dir.normalized() if dir.length() > 1.0 else _facing
+	_facing = _dodge_dir
+	_dodge_t = DODGE_TIME * 1.5
+	_iframe = maxf(_iframe, IFRAME_TIME)
+	_dodge_cd = DODGE_COOLDOWN
 
 
 func _physics_process(delta: float) -> void:
@@ -109,3 +136,7 @@ func _draw() -> void:
 	draw_circle(Vector2.ZERO, RADIUS * 2.0, aura)
 	draw_circle(Vector2.ZERO, RADIUS, core)
 	draw_line(Vector2.ZERO, -_facing * RADIUS * 1.8, TAIL, 5.0)  # a wispy tail
+	if shield > 0.0:
+		var col := SHIELD_COL
+		col.a *= clampf(shield / MAX_SHIELD, 0.3, 1.0)
+		draw_arc(Vector2.ZERO, RADIUS * 2.4, 0.0, TAU, 32, col, 3.0)

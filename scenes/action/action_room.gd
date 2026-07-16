@@ -1,37 +1,56 @@
 extends Node2D
-## Action Combat Arc — Phase A vertical slice.
+## Action Combat Arc — Phase A + B vertical slice.
 ##
-## A top-down arena where you move, dodge, slow time to plan (focus), and fight
-## one telegraphed enemy. Owns the FocusMeter + world `time_factor`, the HUD, and
-## win/lose. Reachable from the main menu's dev entry. Everything here is a
-## tunable prototype whose only job is to find the *feel* before loadouts, rooms,
-## and boons hang off it (roadmap Phases B+).
+## A top-down arena where you move, dodge, and slow time to plan. Phase A gave the
+## real-time core + freeze (FocusMeter); Phase B makes the freeze meaningful: your
+## attuned loadout is a hand of cards you QUEUE during the freeze (keys 1-4) and
+## UNLEASH in a burst when you release it. Free spirit-bolt (LMB) stays your basic
+## attack; cards are the specials. Everything is a tunable prototype whose job is
+## to find the *feel* before rooms/boons/real attunement wire in (roadmap C+).
 
 const SpiritPlayer := preload("res://scenes/action/spirit_player.gd")
 const ActionEnemy := preload("res://scenes/action/action_enemy.gd")
+const SpiritBolt := preload("res://scenes/action/spirit_bolt.gd")
+const ActionCardScript := preload("res://gameplay/action/action_card.gd")
+const CardLoadoutScript := preload("res://gameplay/action/card_loadout.gd")
 
 const VIEW := Vector2(1280, 720)
-const ARENA := Rect2(70, 110, 1140, 500)  # play bounds within the view
+const ARENA := Rect2(70, 110, 1140, 470)  # play bounds within the view
+
+const MAX_QUEUE := 4
+const CAST_GAP := 0.16       # real-time beat between queued cards on execute
+const LASH_RANGE := 96.0
+const RIPTIDE_RANGE := 260.0
 
 var focus := FocusMeter.new()
 var time_factor := 1.0                     # read by the enemy each physics frame
+
+var _loadout = null                        # CardLoadout
+var _queue: Array = []                      # card indices queued this plan
+var _pending: Array = []                    # ActionCards awaiting sequenced cast
+var _cast_timer := 0.0
+var _planning := false
 
 var _player = null
 var _enemy = null
 var _over := false
 
 var _p_hp_fill: ColorRect
+var _shield_fill: ColorRect
 var _focus_fill: ColorRect
 var _focus_label: Label
 var _e_hp_fill: ColorRect
 var _e_hp_box: Control
 var _vignette: ColorRect
+var _plan_hint: Label
+var _card_panels: Array = []
 var _overlay: Control
 var _overlay_title: Label
 
 
 func _ready() -> void:
 	_ensure_input_actions()
+	_loadout = CardLoadoutScript.new(ActionCardScript.default_hand())
 	_build_background()
 	_spawn_actors()
 	_build_hud()
@@ -54,9 +73,34 @@ func spawn_projectile(node: Node) -> void:
 func _physics_process(delta: float) -> void:
 	if _over:
 		return
+	_loadout.tick(delta)
+
 	var wants: bool = Input.is_action_pressed("focus") and _player != null and not _player.is_dead()
 	focus.update(delta, wants)
 	time_factor = focus.time_factor()
+
+	# Plan-mode edges: entering clears the queue, leaving unleashes it.
+	if focus.active and not _planning:
+		_planning = true
+		_queue.clear()
+	elif not focus.active and _planning:
+		_planning = false
+		_execute_queue()
+
+	# Sequenced burst on release.
+	if not _pending.is_empty():
+		_cast_timer -= delta
+		if _cast_timer <= 0.0:
+			_resolve_card(_pending.pop_front())
+			_cast_timer = CAST_GAP
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _over or not _planning:
+		return
+	for i in _loadout.size():
+		if event.is_action_pressed("card_%d" % (i + 1)):
+			_try_queue(i)
 
 
 func _process(_delta: float) -> void:
@@ -64,9 +108,50 @@ func _process(_delta: float) -> void:
 
 
 func _draw() -> void:
-	# Arena floor over the background so nothing is ever the grey clear colour.
 	draw_rect(ARENA, Color(0.06, 0.09, 0.12))
 	draw_rect(ARENA, Color(0.18, 0.28, 0.32), false, 2.0)
+
+
+# --- Cards: queue + execute ------------------------------------------------
+
+func _try_queue(index: int) -> void:
+	if _queue.size() >= MAX_QUEUE or _queue.has(index) or not _loadout.is_ready(index):
+		return
+	_queue.append(index)
+
+
+func _execute_queue() -> void:
+	for i in _queue:
+		_loadout.use(i)
+		_pending.append(_loadout.cards[i])
+	_queue.clear()
+
+
+func _resolve_card(card) -> void:
+	if _player == null or not is_instance_valid(_player) or _player.is_dead():
+		return
+	match card.kind:
+		ActionCardScript.BOLT:
+			_fire_card_bolt(card)
+		ActionCardScript.LASH:
+			if _enemy != null and is_instance_valid(_enemy) and _player.position.distance_to(_enemy.position) <= LASH_RANGE:
+				_enemy.take_damage(card.power)
+		ActionCardScript.WARD:
+			_player.add_shield(card.power)
+		ActionCardScript.RIPTIDE:
+			if _enemy != null and is_instance_valid(_enemy):
+				_player.dash_toward(_enemy.position)
+				if _player.position.distance_to(_enemy.position) <= RIPTIDE_RANGE:
+					_enemy.take_damage(card.power)
+
+
+func _fire_card_bolt(card) -> void:
+	if _enemy == null or not is_instance_valid(_enemy):
+		return
+	var bolt := SpiritBolt.new()
+	bolt.position = _player.position
+	bolt.setup(_enemy.position - _player.position, card.power)
+	add_child(bolt)
 
 
 # --- Setup -----------------------------------------------------------------
@@ -103,19 +188,27 @@ func _build_hud() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(root)
 
-	# Focus vignette (shown while focusing).
 	_vignette = ColorRect.new()
 	_vignette.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_vignette.color = Color(0.18, 0.42, 0.68, 0.0)
 	_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_vignette)
 
-	# Player HP + focus (top-left).
+	# Player HP + shield + focus (top-left).
 	root.add_child(_hud_label("THE SPECTER", Vector2(28, 22), 16, UiKit.INK))
-	_p_hp_fill = _make_bar(root, Vector2(28, 48), Vector2(320, 18), UiKit.DANGER.lerp(Color(0.9, 0.35, 0.4), 0.4))
+	_p_hp_fill = _make_bar(root, Vector2(28, 48), Vector2(320, 18), Color(0.82, 0.34, 0.38))
+	# Shield: a thin cyan strip along the top edge of the HP bar (no own bg, so it
+	# layers over health rather than hiding it).
+	_shield_fill = ColorRect.new()
+	_shield_fill.position = Vector2(28, 48)
+	_shield_fill.size = Vector2(0, 5)
+	_shield_fill.color = Color(0.58, 0.88, 0.82, 0.95)
+	_shield_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shield_fill.set_meta("w", 320.0)
+	root.add_child(_shield_fill)
 	root.add_child(_hud_label("FOCUS", Vector2(28, 74), 12, UiKit.MUTED))
 	_focus_fill = _make_bar(root, Vector2(90, 74), Vector2(258, 14), UiKit.AMBER)
-	_focus_label = _hud_label("◊ FOCUS ◊", Vector2(0, 96), 13, Color(0.7, 0.9, 1.0))
+	_focus_label = _hud_label("◊ TIME SLOWS ◊", Vector2(0, 96), 13, Color(0.7, 0.9, 1.0))
 	_focus_label.size.x = VIEW.x
 	_focus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_focus_label.visible = false
@@ -131,15 +224,82 @@ func _build_hud() -> void:
 	_e_hp_box.add_child(e_label)
 	_e_hp_fill = _make_bar(_e_hp_box, Vector2(VIEW.x * 0.5 - 150, 48), Vector2(300, 16), UiKit.DANGER)
 
-	# Controls hint (bottom).
+	_build_hand_hud(root)
+
 	var hint := _hud_label(
-		"WASD / Arrows  move      SPACE  dodge      LMB / J  spirit bolt      RMB / K  focus (slow time)",
-		Vector2(0, VIEW.y - 34), 13, UiKit.MUTED)
+		"WASD move    SPACE dodge    LMB/J bolt    RMB/K hold to FOCUS    1-4 queue cards, release to unleash",
+		Vector2(0, VIEW.y - 30), 13, UiKit.MUTED)
 	hint.size.x = VIEW.x
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(hint)
 
-	# Win/lose overlay (hidden until the fight ends).
+	_build_overlay(layer)
+
+
+func _build_hand_hud(root: Control) -> void:
+	_card_panels.clear()
+	var n: int = _loadout.size()
+	var cw := 158.0
+	var ch := 78.0
+	var gap := 12.0
+	var total := n * cw + (n - 1) * gap
+	var start_x := (VIEW.x - total) * 0.5
+	var y := VIEW.y - 132.0
+
+	for i in n:
+		var card = _loadout.cards[i]
+		var x := start_x + i * (cw + gap)
+		var panel := Panel.new()
+		panel.position = Vector2(x, y)
+		panel.size = Vector2(cw, ch)
+		panel.add_theme_stylebox_override("panel", UiKit.stylebox(UiKit.PANEL, card.color, 2, 8))
+		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(panel)
+
+		var key := UiKit.label(str(i + 1), 13, UiKit.MUTED)
+		key.position = Vector2(10, 5)
+		panel.add_child(key)
+		var nm := UiKit.label(card.display_name, 15, card.color.lerp(UiKit.INK, 0.35))
+		nm.position = Vector2(10, 26)
+		panel.add_child(nm)
+		var tag := UiKit.label(_card_tagline(card), 11, UiKit.MUTED)
+		tag.position = Vector2(10, 50)
+		panel.add_child(tag)
+
+		var shade := ColorRect.new()
+		shade.color = Color(0.03, 0.04, 0.05, 0.72)
+		shade.position = Vector2.ZERO
+		shade.size = Vector2(cw, ch)
+		panel.add_child(shade)
+
+		var badge := UiKit.label("", 17, UiKit.AMBER)
+		badge.position = Vector2(cw - 24, 4)
+		panel.add_child(badge)
+
+		UiKit.ignore_mouse(panel)
+		_card_panels.append({"panel": panel, "shade": shade, "badge": badge, "h": ch})
+
+	_plan_hint = UiKit.label("◊ PLAN — press 1-4 to queue, release FOCUS to unleash ◊", 13, Color(0.72, 0.92, 1.0))
+	_plan_hint.position = Vector2(0, y - 26)
+	_plan_hint.size.x = VIEW.x
+	_plan_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_plan_hint.visible = false
+	root.add_child(_plan_hint)
+
+
+func _card_tagline(card) -> String:
+	match card.kind:
+		ActionCardScript.WARD:
+			return "%d shield" % int(card.power)
+		ActionCardScript.RIPTIDE:
+			return "lunge · %d" % int(card.power)
+		ActionCardScript.LASH:
+			return "%d melee" % int(card.power)
+		_:
+			return "%d bolt" % int(card.power)
+
+
+func _build_overlay(layer: CanvasLayer) -> void:
 	_overlay = Control.new()
 	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_overlay.visible = false
@@ -169,6 +329,7 @@ func _build_hud() -> void:
 func _refresh_hud() -> void:
 	if _player != null and is_instance_valid(_player):
 		_set_bar(_p_hp_fill, _player.hp / _player.max_hp)
+		_set_bar(_shield_fill, _player.shield / _player.max_hp)
 	if _enemy != null and is_instance_valid(_enemy):
 		_set_bar(_e_hp_fill, _enemy.hp / _enemy.max_hp)
 	elif _e_hp_box != null:
@@ -177,8 +338,16 @@ func _refresh_hud() -> void:
 	_set_bar(_focus_fill, focus.fraction())
 	_focus_fill.color = UiKit.DANGER if focus.is_recharging() else (Color(0.55, 0.85, 1.0) if focus.active else UiKit.AMBER)
 	_focus_label.visible = focus.active
-	var target_a := 0.22 if focus.active else 0.0
-	_vignette.color.a = lerpf(_vignette.color.a, target_a, 0.25)
+	_vignette.color.a = lerpf(_vignette.color.a, 0.22 if focus.active else 0.0, 0.25)
+
+	if _plan_hint != null:
+		_plan_hint.visible = _planning
+	for i in _card_panels.size():
+		var cp: Dictionary = _card_panels[i]
+		var shade: ColorRect = cp["shade"]
+		shade.size.y = float(cp["h"]) * _loadout.cooldown_fraction(i)
+		var pos := _queue.find(i)
+		cp["badge"].text = str(pos + 1) if pos >= 0 else ""
 
 
 # --- End state -------------------------------------------------------------
@@ -257,6 +426,10 @@ func _ensure_input_actions() -> void:
 	_bind("dodge", [KEY_SPACE])
 	_bind("spirit_attack", [KEY_J], [MOUSE_BUTTON_LEFT])
 	_bind("focus", [KEY_K, KEY_SHIFT], [MOUSE_BUTTON_RIGHT])
+	_bind("card_1", [KEY_1, KEY_KP_1])
+	_bind("card_2", [KEY_2, KEY_KP_2])
+	_bind("card_3", [KEY_3, KEY_KP_3])
+	_bind("card_4", [KEY_4, KEY_KP_4])
 
 
 func _bind(action: String, keys: Array, mouse_buttons: Array = []) -> void:

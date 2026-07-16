@@ -156,15 +156,19 @@ engine* are replaced. Built in vertical slices so there's always a playable buil
 - [ ] Tune feel (knockback, hit-stop, dodge/attack timings) — needs hands-on play
 - [ ] Enemy variety, obstacles/walls, spirit possession & ethereal abilities
 
-## Phase B — Loadout as your hand
-- [ ] Attuned items → the **hand of cards you queue during the freeze**
-      (reinterpret CardDefinition effects as queued real-time abilities); cards go
-      on cooldown after use, no random draw
-- [ ] Targeting in freeze (enemies/positions); plays resolve in a burst on release
-- [ ] Ability slots from the archetype; the Attunement screen becomes the
-      pre-fight loadout screen
-- [ ] Port the existing effect kinds (damage, block→shield, status, etc.) to
-      real-time resolution; keep the data-driven definitions
+## Phase B — Loadout as your hand  🚧 first slice built
+- [x] A **hand of cards you queue during the freeze** (keys 1-4) that **unleash in
+      a burst on release**; cards go on cooldown after use, no random draw. Pure,
+      unit-tested `ActionCard` + `CardLoadout` (cooldowns)
+- [x] Real-time effect kinds resolved: bolt (projectile), lash (melee), ward
+      (player shield that absorbs), riptide (lunge + hit) — plus player shield/dash
+- [x] Hand HUD: cards with key hints, cooldown shading, and queue-order badges;
+      "PLAN — press 1-4… release to unleash" state. Verified via drive + shots
+- [ ] Manual targeting in the freeze (currently auto-targets the enemy)
+- [ ] Source the hand from the run's **Attunement** (items→deck), not a fixed
+      default hand; ability slots from the archetype
+- [ ] Port the real `CardDefinition` effect kinds (status, block, repeat, etc.)
+      to real-time resolution, keeping the data-driven definitions
 
 ## Phase C — Rooms replace the combat node
 - [ ] Map "combat/elite/boss" nodes launch action rooms (from the run + node)

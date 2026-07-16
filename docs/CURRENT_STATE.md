@@ -148,8 +148,16 @@ Combat Arc** in [ROADMAP.md](ROADMAP.md).
   burst per press, exposed recharge window, world slows while the player stays
   full-speed), and The Drowned One (telegraphed melee + pursuit, slowed by
   focus). Win/lose overlay. Verified headless (drive + screenshots); 139 tests.
-- **Next on Phase A**: tune the feel hands-on (knockback, hit-stop, timings),
-  then Phase B (attuned loadout → the cards you queue during the freeze).
+- **Phase B — Loadout as your hand: first slice built** ✅ (not yet in a public
+  build). During the freeze you queue cards from a hand (keys 1-4) and unleash
+  them in a burst on release; each goes on cooldown. Four cards resolve in real
+  time — Wailing Bolt (projectile), Spirit Lash (melee), Drowned Ward (shield),
+  Rip Tide (lunge + hit) — with player shield/dash. Pure, unit-tested `ActionCard`
+  + `CardLoadout`; hand HUD with cooldown shading + queue-order badges. Verified
+  headless (queue → unleash → damage/shield/cooldown) + screenshots. **143 tests.**
+- **Next on the action arc**: hands-on feel tuning; manual targeting; then source
+  the hand from the real **Attunement** (items→deck) instead of a default hand,
+  and Phase C (map combat nodes launch action rooms).
 - The turn-based v0.2.0 build stays the public playable version during the
   rebuild. (Phase 7 Memory Tattoos and richer non-combat nodes remain valuable
   and can slot in alongside the action arc.)
