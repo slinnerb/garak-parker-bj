@@ -21,6 +21,26 @@ The player should always feel the tension:
 > "I want to survive longer — but even this death will teach my next life
 > something."
 
+## The larger arc — Spirit → Bones → Flesh
+
+The whole game is one soul **reassembling its own existence** in three phases,
+each a step back toward being whole. Full detail in **[STORY.md](STORY.md)**.
+
+1. **Raise That Specter (Spirit).** You begin a disembodied ghost in the depths of
+   an afterlife. Escape, learn to survive as a spectre, travel the realms, and
+   gather fragments of why your soul refuses to disappear.
+2. **Roll the Bones (Bones).** Recover your scattered skeleton across the realms;
+   each bone permanently unlocks movement, slots, health, or abilities as your
+   body reconstructs, and the mystery of your death deepens.
+3. **Ashes to Ashes (Flesh).** Reach the living world, restore your flesh, learn
+   the complete truth of your death, and face a final choice about what you become.
+
+The realms you travel are the **mythological universes** (Lovecraftian, Japanese,
+Norse, and future Fey / underworld / purgatorial worlds), connected by your death
+and fragmented identity. The roguelite death loop is the texture *within* this
+arc — a ghost can't truly die; each death casts the unfinished soul back to try
+again, stronger. This may ship as one game, three campaigns, or a trilogy.
+
 ## Pillars
 
 1. **Death is the central system, not a game-over.** Dying records how and why
