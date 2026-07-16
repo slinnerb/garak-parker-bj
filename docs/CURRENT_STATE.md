@@ -1,8 +1,9 @@
 # Current State
 
-_Last updated: 2026-07-15 — **v0.2.0 shipped**: the full loop (map → fights →
-death → recall → reincarnation) is now a public, auto-updating build. Live →
-die → remember → adapt → reincarnate stronger._
+_Last updated: 2026-07-16 — **v0.3.0 shipped**: the Hades pivot is playable —
+real-time, top-down combat with a **freeze-to-plan** card twist, now the run's
+actual combat. (v0.2.0 was the turn-based full loop.) Live → freeze → unleash →
+die → reincarnate._
 
 ## What works today
 
