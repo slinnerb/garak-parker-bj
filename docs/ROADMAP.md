@@ -170,10 +170,15 @@ engine* are replaced. Built in vertical slices so there's always a playable buil
 - [ ] Port the real `CardDefinition` effect kinds (status, block, repeat, etc.)
       to real-time resolution, keeping the data-driven definitions
 
-## Phase C — Rooms replace the combat node
-- [ ] Map "combat/elite/boss" nodes launch action rooms (from the run + node)
-- [ ] HP carries between rooms; room clear → back to the map; boss room → win
-- [ ] Enemy sets drawn from the universe pool, as today
+## Phase C — Rooms replace the combat node  🚧 first slice built
+- [x] Map combat/elite/boss nodes launch the **action room** (map_screen →
+      `goto_action`; the room reads `RunManager.current` + the node to build itself)
+- [x] HP carries in and back out (`resolve_combat`); room clear → **Onward** to the
+      map; boss clear → **Complete the run**; death → **Remember** (recall)
+- [x] Enemy drawn from the universe pool by node type (normal/elite/boss),
+      tier-scaled HP + threat; enemy name shown. Verified drive (win + death) + shot
+- [ ] Enemy threat from real intents (currently approximated per tier); obstacles
+      / walls; the standalone dev sandbox stays for tuning
 
 ## Phase D — Mid-run boons
 - [ ] Boon definitions (data-driven ability modifiers) + a between-room choice

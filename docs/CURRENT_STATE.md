@@ -155,9 +155,18 @@ Combat Arc** in [ROADMAP.md](ROADMAP.md).
   Rip Tide (lunge + hit) — with player shield/dash. Pure, unit-tested `ActionCard`
   + `CardLoadout`; hand HUD with cooldown shading + queue-order badges. Verified
   headless (queue → unleash → damage/shield/cooldown) + screenshots. **143 tests.**
-- **Next on the action arc**: hands-on feel tuning; manual targeting; then source
-  the hand from the real **Attunement** (items→deck) instead of a default hand,
-  and Phase C (map combat nodes launch action rooms).
+- **Phase C — Rooms in the run: first slice built** ✅ (not yet in a public
+  build). The run map's **combat/elite/boss nodes now launch the action room**
+  (instead of the turn-based scene): the room reads the run + node, draws the
+  enemy from the universe pool by tier (e.g. "Choir of the Shallows"), carries the
+  specter's HP in, and on the way out saves surviving HP (**Onward**), completes
+  the run on a boss kill, or routes death to the **Moment of Recall**. The whole
+  roguelite shell now wraps the new combat. Verified headless (win + death paths)
+  + screenshot. **143 tests.** (The turn-based combat scene remains as legacy /
+  the shipped v0.2.0 path.)
+- **Next on the action arc**: hands-on feel tuning; source the hand from the real
+  **Attunement** (items→deck) instead of a default hand; enemy threat from real
+  intents; then a preview build so the loop can be *played*.
 - The turn-based v0.2.0 build stays the public playable version during the
   rebuild. (Phase 7 Memory Tattoos and richer non-combat nodes remain valuable
   and can slot in alongside the action arc.)

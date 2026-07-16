@@ -13,6 +13,7 @@ const ActionEnemy := preload("res://scenes/action/action_enemy.gd")
 const SpiritBolt := preload("res://scenes/action/spirit_bolt.gd")
 const ActionCardScript := preload("res://gameplay/action/action_card.gd")
 const CardLoadoutScript := preload("res://gameplay/action/card_loadout.gd")
+const RunCombatScript := preload("res://gameplay/combat/run_combat.gd")
 
 const VIEW := Vector2(1280, 720)
 const ARENA := Rect2(70, 110, 1140, 470)  # play bounds within the view
@@ -35,6 +36,12 @@ var _player = null
 var _enemy = null
 var _over := false
 
+# Run context (set when launched from a run map node; empty for the dev sandbox).
+var _in_run := false
+var _run = null
+var _enemy_def = null
+var _enemy_name := "The Drowned One"
+
 var _p_hp_fill: ColorRect
 var _shield_fill: ColorRect
 var _focus_fill: ColorRect
@@ -46,14 +53,41 @@ var _plan_hint: Label
 var _card_panels: Array = []
 var _overlay: Control
 var _overlay_title: Label
+var _overlay_vbox: VBoxContainer
 
 
 func _ready() -> void:
 	_ensure_input_actions()
 	_loadout = CardLoadoutScript.new(ActionCardScript.default_hand())
+	_resolve_run_context()
 	_build_background()
 	_spawn_actors()
 	_build_hud()
+
+
+## If launched from a run's combat/elite/boss node, pull the fight from the run:
+## the enemy comes from the universe pool by node type, HP carries in. Otherwise
+## this is the standalone dev sandbox (default specter vs. The Drowned One).
+func _resolve_run_context() -> void:
+	if not RunManager.has_run():
+		return
+	var run = RunManager.current
+	var node = run.current_node()
+	if node == null or not RunCombatScript.is_combat_node(node.node_type):
+		return
+	if ContentRegistry.ids_of("enemy").is_empty():
+		ContentLoader.load_all(ContentRegistry)
+	var rng := RngStream.new(RunManager.encounter_seed(node.id))
+	var enemy_id: String = RunCombatScript._pick_enemy(ContentRegistry, run.universe_id, node.node_type, rng)
+	if enemy_id.is_empty():
+		return
+	var def = ContentRegistry.get_def("enemy", enemy_id)
+	if def == null:
+		return
+	_in_run = true
+	_run = run
+	_enemy_def = def
+	_enemy_name = def.display_name
 
 
 # --- Services the actors call back into -----------------------------------
@@ -168,6 +202,13 @@ func _spawn_actors() -> void:
 	_enemy.target = _player
 	add_child(_enemy)
 
+	# Carry the run in: the specter's HP persists, the enemy is the node's foe.
+	if _in_run and _run != null:
+		_player.max_hp = float(_run.max_hp)
+		_player.hp = float(clampi(_run.hp, 1, _run.max_hp))
+	if _in_run and _enemy_def != null:
+		_enemy.configure(_enemy_def)
+
 	_player.died.connect(_on_player_died)
 	_enemy.died.connect(_on_enemy_died)
 
@@ -218,7 +259,7 @@ func _build_hud() -> void:
 	_e_hp_box = Control.new()
 	_e_hp_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_e_hp_box)
-	var e_label := _hud_label("THE DROWNED ONE", Vector2(VIEW.x * 0.5 - 150, 22), 15, UiKit.DANGER)
+	var e_label := _hud_label(_enemy_name.to_upper(), Vector2(VIEW.x * 0.5 - 150, 22), 15, UiKit.DANGER)
 	e_label.size.x = 300
 	e_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_e_hp_box.add_child(e_label)
@@ -311,17 +352,15 @@ func _build_overlay(layer: CanvasLayer) -> void:
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_overlay.add_child(center)
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 16)
-	vbox.custom_minimum_size = Vector2(460, 0)
-	center.add_child(vbox)
+	_overlay_vbox = VBoxContainer.new()
+	_overlay_vbox.add_theme_constant_override("separation", 16)
+	_overlay_vbox.custom_minimum_size = Vector2(460, 0)
+	center.add_child(_overlay_vbox)
 	_overlay_title = UiKit.label("", 24, UiKit.INK)
 	_overlay_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_overlay_title.custom_minimum_size = Vector2(460, 0)
 	_overlay_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vbox.add_child(_overlay_title)
-	vbox.add_child(_overlay_button("Fight again", func() -> void: get_tree().reload_current_scene()))
-	vbox.add_child(_overlay_button("Back to menu", func() -> void: SceneFlow.goto_main_menu()))
+	_overlay_vbox.add_child(_overlay_title)
 
 
 # --- HUD refresh -----------------------------------------------------------
@@ -353,14 +392,38 @@ func _refresh_hud() -> void:
 # --- End state -------------------------------------------------------------
 
 func _on_enemy_died() -> void:
-	_end("The Drowned One is unmade.\nThe deep is quiet — for now.", UiKit.GOOD)
+	if _in_run and _run != null:
+		_run.resolve_combat(int(_player.hp))
+		if _run.is_victory():
+			_finish("The lighthouse goes dark at last.\nThis life ends — but it ends victorious.", UiKit.GOOD, [
+				{"label": "Complete the run", "cb": func() -> void:
+					RunManager.end_run()
+					SceneFlow.goto_main_menu()}])
+		else:
+			_finish("The way is clear.\nYou press deeper into the coast.", UiKit.GOOD, [
+				{"label": "Onward  ⟶", "cb": func() -> void: SceneFlow.goto_map()}])
+	else:
+		_finish("%s is unmade.\nThe deep is quiet — for now." % _enemy_name, UiKit.GOOD, _sandbox_buttons())
 
 
 func _on_player_died() -> void:
-	_end("You are dragged back into the dark.\nThe soul does not end — it only tries again.", UiKit.DANGER)
+	if _in_run and _run != null:
+		_finish("The water closes over.\nAnd at the moment of death… the soul remembers.", UiKit.DANGER, [
+			{"label": "Remember  ⟶", "cb": func() -> void:
+				RunManager.report_death(_enemy_def)
+				SceneFlow.goto_recall()}])
+	else:
+		_finish("You are dragged back into the dark.\nThe soul does not end — it only tries again.", UiKit.DANGER, _sandbox_buttons())
 
 
-func _end(title: String, color: Color) -> void:
+func _sandbox_buttons() -> Array:
+	return [
+		{"label": "Fight again", "cb": func() -> void: get_tree().reload_current_scene()},
+		{"label": "Back to menu", "cb": func() -> void: SceneFlow.goto_main_menu()},
+	]
+
+
+func _finish(title: String, color: Color, buttons: Array) -> void:
 	if _over:
 		return
 	_over = true
@@ -372,6 +435,12 @@ func _end(title: String, color: Color) -> void:
 		_enemy.set_physics_process(false)
 	_overlay_title.text = title
 	_overlay_title.add_theme_color_override("font_color", color)
+	for child in _overlay_vbox.get_children():
+		if child != _overlay_title:
+			child.queue_free()
+			_overlay_vbox.remove_child(child)
+	for b in buttons:
+		_overlay_vbox.add_child(_overlay_button(str(b["label"]), b["cb"]))
 	_overlay.visible = true
 
 

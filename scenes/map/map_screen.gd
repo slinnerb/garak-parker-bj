@@ -59,7 +59,7 @@ func _on_node_clicked(node_id: String) -> void:
 	_run.travel_to(node_id)
 	var node := _run.current_node()
 	if RunCombat.is_combat_node(node.node_type):
-		SceneFlow.goto_combat()  # the combat scene builds this fight from the run
+		SceneFlow.goto_action()  # the real-time action room builds this fight from the run
 		return
 	_resolve_non_combat(node)
 	_refresh()

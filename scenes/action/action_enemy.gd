@@ -15,7 +15,6 @@ const STRIKE_REACH := 62.0
 const WINDUP_TIME := 0.72
 const STRIKE_TIME := 0.16
 const RECOVER_TIME := 0.66
-const STRIKE_DAMAGE := 14.0
 
 const BODY := Color(0.62, 0.16, 0.22)
 const TELL := Color(0.98, 0.62, 0.34)
@@ -24,8 +23,24 @@ const EYE := Color(0.95, 0.95, 0.90)
 var max_hp := 64.0
 var hp := 64.0
 var hit_radius := 22.0
+var strike_damage := 14.0
 var room = null       # the ActionRoom (for time_factor + bounds)
 var target = null     # the player
+
+
+## Shape this enemy from a run's EnemyDefinition (HP + tier-scaled threat).
+func configure(def) -> void:
+	max_hp = float(maxi(1, def.base_hp))
+	hp = max_hp
+	if def.is_boss:
+		strike_damage = 24.0
+		hit_radius = 30.0
+	elif def.is_elite:
+		strike_damage = 18.0
+		hit_radius = 26.0
+	else:
+		strike_damage = 13.0
+		hit_radius = 22.0
 
 var _state := St.CHASE
 var _t := 0.0
@@ -90,7 +105,7 @@ func _resolve_strike() -> void:
 	if target == null or not is_instance_valid(target):
 		return
 	if position.distance_to(target.position) <= STRIKE_REACH and not target.is_invulnerable():
-		target.take_damage(STRIKE_DAMAGE)
+		target.take_damage(strike_damage)
 
 
 func _draw() -> void:
